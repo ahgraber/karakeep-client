@@ -36,6 +36,7 @@ nav:
   - Home: index.md
   - Overview: overview.md
   - Quickstart: quickstart.md
+  - Docat Handoff: docat-handoff.md
   - API Reference:
       - Overview: reference/index.md
       - Karakeep Client: reference/karakeep.md

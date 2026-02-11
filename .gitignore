@@ -43,6 +43,7 @@ venv/
 .Python
 build/
 site/
+docs-dist/
 develop-eggs/
 dist/
 downloads/

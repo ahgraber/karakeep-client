@@ -83,6 +83,32 @@ A demonstration script is included at `notebooks/karakeep_client_demo.py`. It sh
 - Creating link/text/asset bookmarks
 - Uploading and retrieving assets
 
+## Documentation
+
+For user-facing docs and API reference, this project uses MkDocs + Material + mkdocstrings.
+
+Install docs dependencies:
+
+```bash
+uv sync --group docs
+```
+
+Run a local docs server:
+
+```bash
+uv run --group docs mkdocs serve
+```
+
+Build static docs:
+
+```bash
+uv run --group docs mkdocs build
+```
+
+Build output is written to `site/`.
+
+For self-hosted Docat packaging and upload handoff, see `docs/docat-handoff.md`.
+
 ## Notes
 
 - Response validation: by default, responses are validated using Pydantic models defined in karakeep_client.karakeep. You can disable validation by passing `disable_response_validation=True` to the KarakeepClient constructor or to individual methods.

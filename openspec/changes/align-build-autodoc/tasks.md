@@ -8,9 +8,9 @@
 
 ## 2. API Reference Site Implementation
 
-- [ ] 2.1 Configure mkdocstrings directives to render public API surfaces for `karakeep_client.karakeep` and `karakeep_client.models`.
-- [ ] 2.2 Ensure generated site output path is deterministic and documented for local builds.
-- [ ] 2.3 Verify built documentation includes API reference navigation entries for client and model modules.
+- [x] 2.1 Configure mkdocstrings directives to render public API surfaces for `karakeep_client.karakeep` and `karakeep_client.models`.
+- [x] 2.2 Ensure generated site output path is deterministic and documented for local builds.
+- [x] 2.3 Verify built documentation includes API reference navigation entries for client and model modules.
 
 ## 3. Docstring Compliance Updates
 
@@ -26,12 +26,12 @@
 
 ## 5. Docat-Deployable Artifact Path
 
-- [ ] 5.1 Define the deliverable as a built static docs artifact produced from the MkDocs build output.
-- [ ] 5.2 Add repository instructions describing artifact location and upload handoff expectations for self-hosted Docat.
-- [ ] 5.3 Confirm the documented workflow yields a single, identifiable artifact suitable for Docat upload.
+- [x] 5.1 Define the deliverable as a built static docs artifact produced from the MkDocs build output.
+- [x] 5.2 Add repository instructions describing artifact location and upload handoff expectations for self-hosted Docat.
+- [x] 5.3 Confirm the documented workflow yields a single, identifiable artifact suitable for Docat upload.
 
 ## 6. Documentation and Verification
 
-- [ ] 6.1 Update `README.md` with concise docs build/serve instructions for contributors.
-- [ ] 6.2 Run project tests needed to confirm no runtime behavior regressions from documentation-focused changes.
-- [ ] 6.3 Build docs end-to-end and verify all required sections (API reference, demo guidance, Docat handoff) are present.
+- [x] 6.1 Update `README.md` with concise docs build/serve instructions for contributors.
+- [x] 6.2 Run project tests needed to confirm no runtime behavior regressions from documentation-focused changes.
+- [x] 6.3 Build docs end-to-end and verify all required sections (API reference, demo guidance, Docat handoff) are present.

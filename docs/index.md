@@ -11,4 +11,5 @@ See:
 
 - [Overview](overview.md)
 - [Quickstart](quickstart.md)
+- [Docat Handoff](docat-handoff.md)
 - [API Reference](reference/index.md)
