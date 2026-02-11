@@ -1,0 +1,77 @@
+schema: spec-driven
+
+context: |
+  Project: karakeep-client
+  Domain: Async Python client for a subset of the Karakeep API (bookmarks, assets, tags, search, pagination).
+
+  Product purpose:
+  - Provide a robust async Python client for interacting with the Karakeep API.
+  - Optimize for ease of use, reliability, and extensibility for programmatic workflows.
+
+  Target users:
+  - Python developers integrating Karakeep into applications and automation.
+  - Power users and automation engineers managing bookmarks/assets/tags programmatically.
+
+  Tech stack:
+  - Python >=3.12
+  - httpx (async client)
+  - pydantic v2 models
+  - validators + URL normalization helpers
+  - pytest + pytest-asyncio + respx for tests
+  - uv-managed environment from pyproject.toml
+
+  Package layout:
+  - Source code in src/karakeep_client
+  - Demo workflow in notebooks/karakeep_client_demo.py
+
+  Runtime and API conventions:
+  - Public client operations are asynchronous.
+  - Configuration via KARAKEEP_API_KEY and KARAKEEP_BASE_URL env vars or constructor args.
+  - Asset retrieval can return raw bytes.
+  - Core supported operations include bookmark CRUD/search/pagination, asset upload/retrieval, and tag/asset attach-detach flows.
+  - Utility support includes collecting all bookmark URLs.
+
+  Coding conventions:
+  - Clean, explicit, pythonic code with strong type hints.
+  - snake_case for functions/variables, PascalCase for classes, UPPER_SNAKE_CASE for constants.
+  - Google-style docstrings for public modules/classes/functions.
+  - Use f-strings for formatting, but %-format style for logging calls.
+  - Favor defensive programming and clear error handling.
+
+  Scope and workflow constraints:
+  - Do not overreach the requested change.
+  - Do not add features, tests, demos, or docs unless explicitly requested.
+  - Do not change Python environment setup or add packages unless explicitly approved.
+  - Out of scope: building a UI/CLI for end users, synchronous client operations, or APIs outside the documented Karakeep subset.
+
+  Non-functional expectations:
+  - Code remains clean, modular, maintainable, and well-documented.
+  - Logging and error handling remain explicit for debugging and reliability.
+
+  Success and acceptance targets:
+  - Supported API operations remain functional and tested.
+  - Package remains installable via pip-compatible workflows.
+  - Project documentation remains clear for new users and contributors.
+  - Codebase continues to follow Python best practices.
+
+rules:
+  proposal:
+    - Keep the proposal concise and focused on problem/opportunity, not implementation details.
+    - Tie the change to Karakeep client capabilities (bookmarks, assets, tags, search, pagination) and explicit user impact.
+    - Clearly identify any public API or behavior changes that could affect existing integrations.
+    - Preserve PRD intent: reliability, extensibility, and usability for programmatic Karakeep workflows.
+  design:
+    - Describe async behavior, error handling, and environment-variable configuration impacts.
+    - Ensure design decisions align with the existing src/karakeep_client module boundaries.
+    - Note backward-compatibility implications for client methods and model contracts.
+    - Avoid scope creep into UI/CLI or non-supported Karakeep API surfaces.
+  specs:
+    - Write testable requirements using clear MUST-style statements.
+    - Use domain terms consistently with Karakeep entities (bookmark, asset, tag, cursor, content type).
+    - Include constraints for validation/error behavior when relevant.
+    - Keep requirements aligned with documented supported operations and explicit out-of-scope boundaries.
+  tasks:
+    - Break implementation into small, dependency-ordered tasks mapped to requirements.
+    - Include verification steps (tests/type checks) appropriate to the changed behavior.
+    - Avoid adding out-of-scope work not requested by the change.
+    - Include tasks that preserve documentation clarity and maintainability expectations from product requirements.

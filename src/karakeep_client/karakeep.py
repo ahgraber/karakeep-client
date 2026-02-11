@@ -1,13 +1,14 @@
+"""Async client utilities for interacting with the Karakeep API."""
+
 from __future__ import annotations
 
 import asyncio
 import contextlib
-from enum import Enum
 import json
 import logging
 import os
 import re
-from typing import Any, Dict, List, Literal, Optional, Set, Union
+from typing import Any, Dict, Iterator, List, Literal, Optional, Set
 from urllib.parse import urljoin
 
 import httpx
@@ -25,8 +26,16 @@ logger = logging.getLogger(__name__)
 
 
 @contextlib.contextmanager
-def temp_env_var(key, value):
-    """Context manager to temporarily set an environment variable."""
+def temp_env_var(key: str, value: str) -> Iterator[None]:
+    """Temporarily set an environment variable within a context.
+
+    Args:
+        key: Environment variable name.
+        value: Environment variable value to set during the context.
+
+    Yields:
+        None: Control returns to the caller while the variable is set.
+    """
     original_value = os.getenv(key)
     os.environ[key] = value
     try:
@@ -57,8 +66,10 @@ def validate_url(url: str) -> str:
         url: The URL string to validate
 
     Returns:
-    -------
-        str: Validated and normalized URL
+        str: Validated and normalized URL.
+
+    Raises:
+        ValueError: If the URL is empty or fails validation.
     """
     if not url or url.strip() == "":
         raise ValueError("URL cannot be empty")
@@ -411,7 +422,7 @@ class KarakeepClient:
             url: The URL of the bookmark.
 
         Returns:
-            The ID of the bookmark if found, None otherwise.
+            Optional[str]: The bookmark ID when an exact URL match is found, otherwise None.
         """
         if not url or not url.strip():
             return None
@@ -545,27 +556,20 @@ class KarakeepClient:
         """Create a new bookmark. Corresponds to POST /bookmarks.
 
         Args:
-            bookmark_type: The type of bookmark ('link', 'text', 'asset'). Required.
-            title: Optional title for the bookmark (max 1000 chars).
-            archived: Optional boolean indicating if the bookmark is archived.
-            favourited: Optional boolean indicating if the bookmark is favourited.
-            note: Optional note content for the bookmark.
-            summary: Optional summary content for the bookmark.
-            created_at: Optional creation timestamp override (ISO 8601 format string).
-
-            Link Type Specific:
-            url: The URL for the link bookmark. Required if bookmark_type='link'.
-            precrawled_archive_id: Optional ID of a pre-crawled archive.
-
-            Text Type Specific:
-            text: The text content for the text bookmark. Required if bookmark_type='text'.
-            source_url: Optional source URL where the text originated.
-
-            Asset Type Specific:
-            asset_type: The type of asset ('image' or 'pdf'). Required if bookmark_type='asset'.
-            asset_id: The ID of the uploaded asset. Required if bookmark_type='asset'.
-            file_name: Optional filename for the asset.
-            source_url: Optional source URL where the asset originated.
+            bookmark_type: Bookmark type to create. Must be "link", "text", or "asset".
+            title: Optional bookmark title (max 1000 chars).
+            archived: Optional archived state for the bookmark.
+            favourited: Optional favourite state for the bookmark.
+            note: Optional bookmark note content.
+            summary: Optional bookmark summary content.
+            created_at: Optional creation timestamp override in ISO 8601 format.
+            url: URL for link bookmarks. Required when ``bookmark_type`` is ``"link"``.
+            precrawled_archive_id: Optional pre-crawled archive ID for link bookmarks.
+            text: Text content for text bookmarks. Required when ``bookmark_type`` is ``"text"``.
+            source_url: Optional source URL for text or asset bookmarks.
+            asset_type: Asset kind for asset bookmarks. Required when ``bookmark_type`` is ``"asset"``.
+            asset_id: Existing uploaded asset ID for asset bookmarks. Required when ``bookmark_type`` is ``"asset"``.
+            file_name: Optional display filename for asset bookmarks.
 
         Returns:
             Bookmark: The created bookmark.
@@ -631,7 +635,7 @@ class KarakeepClient:
             update_data: Dictionary containing the fields to update.
 
         Returns:
-            dict: A dictionary representing the updated bookmark (partial representation).
+            Dict[str, Any]: Partial bookmark representation returned by the API.
 
         Raises:
             ValueError: If update_data is empty.
@@ -658,7 +662,7 @@ class KarakeepClient:
             tag_names: List of tag names to attach (will create tags if they don't exist) (optional).
 
         Returns:
-            dict: A dictionary containing the list of attached tag IDs under the key "attached".
+            Dict[str, Any]: API response with attached tag identifiers.
 
         Raises:
             ValueError: If no tags are provided or if arguments are invalid.
@@ -717,7 +721,7 @@ class KarakeepClient:
             tag_names: List of tag names to detach (optional).
 
         Returns:
-            dict: A dictionary containing the list of detached tag IDs under the key "detached".
+            Dict[str, Any]: API response with detached tag identifiers.
 
         Raises:
             ValueError: If no tags are provided or if arguments are invalid.
@@ -937,7 +941,7 @@ def extract_url_from_bookmark(bookmark: Any, verbose: bool = False) -> Optional[
         verbose: Enable verbose logging for error reporting.
 
     Returns:
-        URL string if found, None otherwise.
+        Optional[str]: Extracted URL if present, otherwise None.
     """
     try:
         if not hasattr(bookmark, "content"):
@@ -976,7 +980,7 @@ async def get_all_urls(
         timeout: Request timeout in seconds (default: 30.0).
 
     Returns:
-        Set of URLs from all bookmarks.
+        Set[str]: Unique bookmark URLs discovered across all pages.
     """
     client = KarakeepClient(
         api_key=api_key,

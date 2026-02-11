@@ -26,6 +26,26 @@ This package provides an async client to interact with Karakeep programmatically
 
 ## Installation
 
+From GitHub with `uv` (no PyPI publish required):
+
+For projects using `pyproject.toml`:
+
+```bash
+uv add "karakeep-client @ git+https://github.com/ahgraber/karakeep-client.git"
+```
+
+Pin to a specific tag or commit when needed:
+
+```bash
+uv add "karakeep-client @ git+https://github.com/ahgraber/karakeep-client.git@v0.3.0"
+```
+
+For environment-only installs:
+
+```bash
+uv pip install "karakeep-client @ git+https://github.com/ahgraber/karakeep-client.git"
+```
+
 From source (recommended for development):
 
 1. Clone the repository
@@ -82,6 +102,32 @@ A demonstration script is included at `notebooks/karakeep_client_demo.py`. It sh
 - Searching
 - Creating link/text/asset bookmarks
 - Uploading and retrieving assets
+
+## Documentation
+
+For user-facing docs and API reference, this project uses MkDocs + Material + mkdocstrings.
+
+Install docs dependencies:
+
+```bash
+uv sync --group docs
+```
+
+Run a local docs server:
+
+```bash
+uv run --group docs mkdocs serve
+```
+
+Build static docs:
+
+```bash
+uv run --group docs mkdocs build
+```
+
+Build output is written to `site/`.
+
+For self-hosted Docat packaging and upload handoff, see `docs/docat-handoff.md`.
 
 ## Notes
 

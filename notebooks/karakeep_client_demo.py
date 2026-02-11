@@ -3,6 +3,11 @@
 
 This script demonstrates how to use the KarakeepClient to interact with the Karakeep API.
 Make sure to set KARAKEEP_API_KEY and KARAKEEP_BASE_URL environment variables.
+
+Alignment note:
+- User-facing quickstart documentation lives in `docs/quickstart.md`.
+- Keep this demo and the quickstart aligned when examples change.
+- This file uses notebook-style cells/top-level await, while quickstart examples are script-oriented.
 """
 
 # %%
@@ -14,6 +19,7 @@ import sys
 
 # %%
 # Add the src directory to the path so we can import karakeep_client
+# NOTE: This notebook-style file intentionally differs from script usage shown in docs/quickstart.md.
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from itertools import islice
