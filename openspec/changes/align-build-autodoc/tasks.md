@@ -20,9 +20,9 @@
 
 ## 4. Demo Documentation Readiness
 
-- [ ] 4.1 Review `notebooks/karakeep_client_demo.py` for notebook-only patterns and placeholder inputs that can mislead users.
-- [ ] 4.2 Update demo documentation presentation to state env var and async execution assumptions.
-- [ ] 4.3 Add clear caveats or adapted runnable guidance for non-notebook execution contexts.
+- [x] 4.1 Review `notebooks/karakeep_client_demo.py` for notebook-only patterns and placeholder inputs that can mislead users.
+- [x] 4.2 Update demo documentation presentation to state env var and async execution assumptions.
+- [x] 4.3 Add clear caveats or adapted runnable guidance for non-notebook execution contexts.
 
 ## 5. Docat-Deployable Artifact Path
 
