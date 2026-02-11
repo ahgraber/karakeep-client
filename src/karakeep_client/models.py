@@ -17,6 +17,8 @@ from pydantic.alias_generators import to_camel
 
 
 class KarakeepBaseModel(BaseModel):
+    """Base model with camelCase alias handling for Karakeep payloads."""
+
     model_config = ConfigDict(
         alias_generator=to_camel,
         validate_by_name=True,
@@ -26,23 +28,31 @@ class KarakeepBaseModel(BaseModel):
 
 
 class StatusTypes(str, Enum):
+    """Generic operation status values returned by Karakeep."""
+
     success = "success"
     failure = "failure"
     pending = "pending"
 
 
 class NumBookmarksByAttachedType(KarakeepBaseModel):
+    """Bookmark count split by attachment source."""
+
     ai: Optional[float] = None
     human: Optional[float] = None
 
 
 class TagShort(KarakeepBaseModel):
+    """Compact tag representation embedded in bookmark payloads."""
+
     id: str
     name: str
     attached_by: Literal["ai", "human"] = Field(alias="attachedBy")
 
 
 class Tag(KarakeepBaseModel):
+    """Full tag representation with aggregate usage counters."""
+
     id: str
     name: str
     num_bookmarks: float = Field(alias="numBookmarks")
@@ -50,10 +60,14 @@ class Tag(KarakeepBaseModel):
 
 
 class Type(str, Enum):
+    """Legacy content type enum retained for compatibility."""
+
     link = "link"
 
 
 class ContentTypeLink(KarakeepBaseModel):
+    """Bookmark content payload for link-type bookmarks."""
+
     type: Literal["link"] = "link"
     url: str
     title: Optional[str] = None
@@ -79,16 +93,22 @@ class ContentTypeLink(KarakeepBaseModel):
 
 
 class ContentTypeUnknown(KarakeepBaseModel):
+    """Fallback content payload for unsupported bookmark content types."""
+
     type: Literal["unknown"] = "unknown"
 
 
 class ContentTypeText(KarakeepBaseModel):
+    """Bookmark content payload for text-type bookmarks."""
+
     type: Literal["text"] = "text"
     text: str
     source_url: Optional[str] = Field(default=None, alias="sourceUrl")
 
 
 class ContentTypeAsset(KarakeepBaseModel):
+    """Bookmark content payload for uploaded asset bookmarks."""
+
     type: Literal["asset"] = "asset"
     asset_type: Literal["image", "pdf"] = Field(alias="assetType")
     asset_id: str = Field(alias="assetId")
@@ -99,6 +119,8 @@ class ContentTypeAsset(KarakeepBaseModel):
 
 
 class BookmarkAsset(KarakeepBaseModel):
+    """Asset metadata attached to a bookmark."""
+
     id: str
     asset_type: Literal[
         "linkHtmlContent",
@@ -118,6 +140,8 @@ class BookmarkAsset(KarakeepBaseModel):
 
 
 class Asset(KarakeepBaseModel):
+    """Metadata for an asset stored in Karakeep."""
+
     asset_id: str = Field(alias="assetId")
     content_type: str = Field(alias="contentType")
     size: float
@@ -125,6 +149,8 @@ class Asset(KarakeepBaseModel):
 
 
 class Bookmark(KarakeepBaseModel):
+    """Primary bookmark record returned by the Karakeep API."""
+
     id: str
     created_at: str = Field(alias="createdAt")
     modified_at: Optional[str] = Field(alias="modifiedAt")
@@ -147,11 +173,15 @@ class Bookmark(KarakeepBaseModel):
 
 
 class PaginatedBookmarks(KarakeepBaseModel):
+    """Cursor-paginated bookmark response."""
+
     bookmarks: List[Bookmark]
     next_cursor: Optional[str] = Field(alias="nextCursor")
 
 
 class Highlight(KarakeepBaseModel):
+    """Text highlight metadata associated with a bookmark."""
+
     bookmark_id: str = Field(alias="bookmarkId")
     start_offset: float = Field(alias="startOffset")
     end_offset: float = Field(alias="endOffset")
@@ -164,11 +194,15 @@ class Highlight(KarakeepBaseModel):
 
 
 class PaginatedHighlights(KarakeepBaseModel):
+    """Cursor-paginated highlight response."""
+
     highlights: List[Highlight]
     next_cursor: Optional[str] = Field(alias="nextCursor")
 
 
 class BookmarkList(KarakeepBaseModel):
+    """Bookmark list metadata for manual or smart collections."""
+
     id: str
     name: str
     description: Optional[str] = None

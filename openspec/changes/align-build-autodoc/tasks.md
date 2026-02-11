@@ -14,9 +14,9 @@
 
 ## 3. Docstring Compliance Updates
 
-- [ ] 3.1 Audit public modules/classes/functions in `src/karakeep_client` for Google-style docstring compliance gaps.
-- [ ] 3.2 Update non-compliant public docstrings to consistent Google-style sections (Args/Returns/Raises) matching runtime behavior.
-- [ ] 3.3 Validate generated API pages render docstring sections without malformed formatting.
+- [x] 3.1 Audit public modules/classes/functions in `src/karakeep_client` for Google-style docstring compliance gaps.
+- [x] 3.2 Update non-compliant public docstrings to consistent Google-style sections (Args/Returns/Raises) matching runtime behavior.
+- [x] 3.3 Validate generated API pages render docstring sections without malformed formatting.
 
 ## 4. Demo Documentation Readiness
 
