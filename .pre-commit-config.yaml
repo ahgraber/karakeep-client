@@ -159,14 +159,6 @@ repos:
         stages: [pre-commit]
   - repo: local
     hooks:
-      - id: hadolint
-        name: Lint Dockerfiles
-        language: system
-        entry: hadolint
-        types: ["dockerfile"]
-        stages: [pre-commit]
-  - repo: local
-    hooks:
       - id: shellcheck
         name: Lint shell scripts
         language: system
@@ -187,18 +179,11 @@ repos:
           - "--indent"
           - "2"
         stages: [pre-commit]
-  - repo: local
+  # renovate: datasource=github-tags depName=biomejs/pre-commit
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.3.14
     hooks:
-      - id: prettier
-        name: Format with Prettier
-        language: system
-        entry: prettier
-        args:
-          - --write
-          - --ignore-unknown
-          - --no-error-on-unmatched-pattern
-          # - "--ignore-path '**/*.md'"
-          # - "--ignore-path '**/*.y*ml'"
+      - id: biome-check
         stages: [pre-commit]
   # renovate: datasource=github-tags depName=adrienverge/yamllint
   - repo: https://github.com/adrienverge/yamllint
