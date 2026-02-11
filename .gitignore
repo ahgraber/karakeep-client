@@ -42,6 +42,7 @@ venv/
 # Distribution / packaging
 .Python
 build/
+site/
 develop-eggs/
 dist/
 downloads/
