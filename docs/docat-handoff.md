@@ -24,6 +24,7 @@ Set deployment variables in `.env`:
 ```bash
 DOCAT_HOST="https://docat.example.com"
 DOCAT_PROJECT="karakeep-client"
+DOCAT_TOKEN="your-docat-api-token"
 # Optional: set explicitly, or let the workflow infer it.
 # DOCAT_VERSION="0.3.0"
 ```
@@ -54,10 +55,21 @@ curl -X POST -F "file=@docs-dist/karakeep-client-docs.zip" \
   "${DOCAT_HOST}/api/${DOCAT_PROJECT}/${DOCAT_VERSION}"
 ```
 
+If the project is claimed, include authentication:
+
+```bash
+curl -X POST \
+  -H "Docat-Api-Key: ${DOCAT_TOKEN}" \
+  -F "file=@docs-dist/karakeep-client-docs.zip" \
+  "${DOCAT_HOST}/api/${DOCAT_PROJECT}/${DOCAT_VERSION}"
+```
+
 Optionally tag this version as `latest`:
 
 ```bash
-curl -X PUT "${DOCAT_HOST}/api/${DOCAT_PROJECT}/${DOCAT_VERSION}/tags/latest"
+curl -X PUT \
+  -H "Docat-Api-Key: ${DOCAT_TOKEN}" \
+  "${DOCAT_HOST}/api/${DOCAT_PROJECT}/${DOCAT_VERSION}/tags/latest"
 ```
 
 ## Verification checklist
