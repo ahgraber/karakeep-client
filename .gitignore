@@ -1,5 +1,14 @@
 # gitignore
 
+# git
+.worktrees/
+
+# dot-directories, unless explicitly kept
+.*/
+!.github/
+!.specs/
+!.renovate/
+
 # Editors
 .ipynb_checkpoints/
 .profile

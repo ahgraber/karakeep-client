@@ -1,0 +1,10 @@
+# Schema source manifest — tracks when each snapshot was generated and from where.
+karakeep-api:
+  type: openapi
+  file: karakeep-api.json
+  generated: "2026-03-29"
+  source: https://raw.githubusercontent.com/karakeep-app/karakeep/refs/heads/main/packages/open-api/karakeep-openapi-spec.json
+  notes: >
+    Upstream Karakeep API spec. This client implements a subset of the full API
+    surface (bookmarks, assets, tags, search, pagination). Re-fetch to detect
+    upstream drift.
