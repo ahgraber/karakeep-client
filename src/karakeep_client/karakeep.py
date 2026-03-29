@@ -975,36 +975,25 @@ async def get_all_urls(
 
     Returns:
         Set[str]: Unique bookmark URLs discovered across all pages.
+
+    Raises:
+        ValueError: If API key or base URL is missing.
+        APIError: If an API request fails.
     """
-    client = KarakeepClient(
-        api_key=api_key,
-        base_url=base_url,
-        timeout=timeout,
-    )
+    async with KarakeepClient(api_key=api_key, base_url=base_url, timeout=timeout) as client:
+        all_urls: Set[str] = set()
+        next_cursor = None
 
-    all_urls = set()
-    next_cursor = None
-
-    while True:
-        try:
+        while True:
             bookmarks_response = await client.get_bookmarks_paged(cursor=next_cursor, limit=100)
 
-            bookmarks = bookmarks_response.bookmarks
-            next_cursor = bookmarks_response.next_cursor
-
-            # Extract URLs from current page
-            for bookmark in bookmarks:
+            for bookmark in bookmarks_response.bookmarks:
                 url = extract_url_from_bookmark(bookmark, client.verbose)
                 if url:
                     all_urls.add(url)
 
-            # Stop if no more pages
+            next_cursor = bookmarks_response.next_cursor
             if not next_cursor:
                 break
 
-        except Exception as e:
-            if client.verbose:
-                logger.warning("Error fetching page: %s", e)
-            break
-
-    return all_urls
+        return all_urls
