@@ -428,22 +428,16 @@ class KarakeepClient:
             return None
         url = validate_url(url.strip())
 
-        try:
-            # Search for bookmarks with the URL as query
-            search_response = await self.search_bookmarks(q=url.strip(), limit=100, include_content=True)
+        # Search for bookmarks with the URL as query
+        search_response = await self.search_bookmarks(q=url.strip(), limit=100, include_content=True)
 
-            # Find exact URL match
-            for bookmark in search_response.bookmarks:
-                bookmark_url = extract_url_from_bookmark(bookmark, self.verbose)
-                if bookmark_url and validate_url(bookmark_url.strip()) == url:
-                    return bookmark.id
+        # Find exact URL match
+        for bookmark in search_response.bookmarks:
+            bookmark_url = extract_url_from_bookmark(bookmark, self.verbose)
+            if bookmark_url and validate_url(bookmark_url.strip()) == url:
+                return bookmark.id
 
-        except Exception as e:
-            if self.verbose:
-                logger.warning("Error finding bookmark by URL %s: %s", url, e)
-            return None
-        else:
-            return None
+        return None
 
     def _validate_bookmark_type_args(
         self,
