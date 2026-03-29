@@ -1,14 +1,13 @@
 """Async client utilities for interacting with the Karakeep API."""
 
-from __future__ import annotations
-
 import asyncio
+from collections.abc import Iterator
 import contextlib
 import json
 import logging
 import os
 import re
-from typing import Any, Dict, Iterator, List, Literal, Optional, Set
+from typing import Any, Literal
 from urllib.parse import urljoin
 
 import httpx
@@ -122,8 +121,8 @@ class KarakeepClient:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         timeout: float = 30.0,
         verbose: bool = False,
     ) -> None:
@@ -138,7 +137,7 @@ class KarakeepClient:
         self.api_base_url = urljoin(self.base_url, "/api/v1/")  # needs trailing /
         self.timeout = timeout
         self.verbose = verbose
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
         self._default_headers = {
             "Content-Type": "application/json",
@@ -190,10 +189,10 @@ class KarakeepClient:
         self,
         method: str,
         endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        files: Optional[Dict[str, Any]] = None,
-        extra_headers: Optional[Dict[str, str]] = None,
+        params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
+        extra_headers: dict[str, str] | None = None,
     ) -> Any:
         """Make an API call to the Karakeep API.
 
@@ -244,11 +243,11 @@ class KarakeepClient:
         client: httpx.AsyncClient,
         method: str,
         url: str,
-        params: Optional[Dict[str, Any]],
-        data: Optional[Dict[str, Any]],
-        files: Optional[Dict[str, Any]],
-        headers: Dict[str, str],
-        extra_headers: Optional[Dict[str, str]],
+        params: dict[str, Any] | None,
+        data: dict[str, Any] | None,
+        files: dict[str, Any] | None,
+        headers: dict[str, str],
+        extra_headers: dict[str, str] | None,
     ) -> Any:
         """Execute a request with the provided client."""
         try:
@@ -294,11 +293,11 @@ class KarakeepClient:
 
     async def get_bookmarks_paged(
         self,
-        archived: Optional[bool] = None,
-        favourited: Optional[bool] = None,
-        sort_order: Optional[Literal["asc", "desc"]] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
+        archived: bool | None = None,
+        favourited: bool | None = None,
+        sort_order: Literal["asc", "desc"] | None = None,
+        limit: int | None = None,
+        cursor: str | None = None,
         include_content: bool = False,
     ) -> PaginatedBookmarks:
         """Get bookmarks, one page at a time. Corresponds to GET /bookmarks.
@@ -374,9 +373,9 @@ class KarakeepClient:
     async def search_bookmarks(
         self,
         q: str,  # Search query is required
-        sort_order: Optional[Literal["asc", "desc", "relevance"]] = None,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
+        sort_order: Literal["asc", "desc", "relevance"] | None = None,
+        limit: int | None = None,
+        cursor: str | None = None,
         include_content: bool = True,
     ) -> PaginatedBookmarks:
         """Search for bookmarks. Corresponds to GET /bookmarks/search.
@@ -415,14 +414,14 @@ class KarakeepClient:
             logger.exception("Failed to validate PaginatedBookmarks response. Raw response: %s", response_data)
             raise
 
-    async def get_bookmark_id_by_url(self, url: str) -> Optional[str]:
+    async def get_bookmark_id_by_url(self, url: str) -> str | None:
         """Get the bookmark ID by its URL.
 
         Args:
             url: The URL of the bookmark.
 
         Returns:
-            Optional[str]: The bookmark ID when an exact URL match is found, otherwise None.
+            str | None: The bookmark ID when an exact URL match is found, otherwise None.
         """
         if not url or not url.strip():
             return None
@@ -442,10 +441,10 @@ class KarakeepClient:
     def _validate_bookmark_type_args(
         self,
         bookmark_type: str,
-        url: Optional[str],
-        text: Optional[str],
-        asset_type: Optional[str],
-        asset_id: Optional[str],
+        url: str | None,
+        text: str | None,
+        asset_type: str | None,
+        asset_id: str | None,
     ) -> None:
         """Validate type-specific arguments for bookmark creation.
 
@@ -472,26 +471,26 @@ class KarakeepClient:
     def _build_bookmark_request_body(
         self,
         bookmark_type: str,
-        title: Optional[str] = None,
-        archived: Optional[bool] = None,
-        favourited: Optional[bool] = None,
-        note: Optional[str] = None,
-        summary: Optional[str] = None,
-        created_at: Optional[str] = None,
-        url: Optional[str] = None,
-        precrawled_archive_id: Optional[str] = None,
-        text: Optional[str] = None,
-        source_url: Optional[str] = None,
-        asset_type: Optional[str] = None,
-        asset_id: Optional[str] = None,
-        file_name: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        title: str | None = None,
+        archived: bool | None = None,
+        favourited: bool | None = None,
+        note: str | None = None,
+        summary: str | None = None,
+        created_at: str | None = None,
+        url: str | None = None,
+        precrawled_archive_id: str | None = None,
+        text: str | None = None,
+        source_url: str | None = None,
+        asset_type: str | None = None,
+        asset_id: str | None = None,
+        file_name: str | None = None,
+    ) -> dict[str, Any]:
         """Build request body for bookmark creation.
 
         Returns:
             Request body dictionary.
         """
-        request_body: Dict[str, Any] = {"type": bookmark_type}
+        request_body: dict[str, Any] = {"type": bookmark_type}
 
         # Add common optional fields if provided
         if title is not None:
@@ -530,22 +529,22 @@ class KarakeepClient:
         self,
         bookmark_type: Literal["link", "text", "asset"],
         # Common optional fields
-        title: Optional[str] = None,
-        archived: Optional[bool] = None,
-        favourited: Optional[bool] = None,
-        note: Optional[str] = None,
-        summary: Optional[str] = None,
-        created_at: Optional[str] = None,  # ISO 8601 format string
+        title: str | None = None,
+        archived: bool | None = None,
+        favourited: bool | None = None,
+        note: str | None = None,
+        summary: str | None = None,
+        created_at: str | None = None,  # ISO 8601 format string
         # Link specific
-        url: Optional[str] = None,
-        precrawled_archive_id: Optional[str] = None,
+        url: str | None = None,
+        precrawled_archive_id: str | None = None,
         # Text specific
-        text: Optional[str] = None,
-        source_url: Optional[str] = None,  # Also used by asset
+        text: str | None = None,
+        source_url: str | None = None,  # Also used by asset
         # Asset specific
-        asset_type: Optional[Literal["image", "pdf"]] = None,
-        asset_id: Optional[str] = None,
-        file_name: Optional[str] = None,
+        asset_type: Literal["image", "pdf"] | None = None,
+        asset_id: str | None = None,
+        file_name: str | None = None,
     ) -> Bookmark:
         """Create a new bookmark. Corresponds to POST /bookmarks.
 
@@ -620,7 +619,7 @@ class KarakeepClient:
     async def update_bookmark(
         self,
         bookmark_id: str,
-        update_data: Dict[str, Any],
+        update_data: dict[str, Any],
     ) -> Bookmark:
         """Update a bookmark by its ID. Corresponds to PATCH /bookmarks/{bookmarkId}.
 
@@ -649,9 +648,9 @@ class KarakeepClient:
 
     @staticmethod
     def _build_tags_payload(
-        tag_ids: Optional[List[str]] = None,
-        tag_names: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        tag_ids: list[str] | None = None,
+        tag_names: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Validate tag arguments and build the API request payload.
 
         Args:
@@ -659,7 +658,7 @@ class KarakeepClient:
             tag_names: List of tag names.
 
         Returns:
-            Dict[str, Any]: Request body in the format ``{"tags": [...]}``.
+            dict[str, Any]: Request body in the format ``{"tags": [...]}``.
 
         Raises:
             ValueError: If no tags are provided or if arguments are invalid.
@@ -683,7 +682,7 @@ class KarakeepClient:
                 if not isinstance(tag_name, str) or not tag_name.strip():
                     raise ValueError(f"Tag name at index {i} must be a non-empty string")
 
-        tags_list: List[Dict[str, str]] = []
+        tags_list: list[dict[str, str]] = []
         if tag_ids:
             tags_list.extend({"tagId": tid.strip()} for tid in tag_ids)
         if tag_names:
@@ -694,9 +693,9 @@ class KarakeepClient:
     async def add_bookmark_tags(
         self,
         bookmark_id: str,
-        tag_ids: Optional[List[str]] = None,
-        tag_names: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        tag_ids: list[str] | None = None,
+        tag_names: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Attach one or more tags to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/tags.
 
         Args:
@@ -705,7 +704,7 @@ class KarakeepClient:
             tag_names: List of tag names to attach (will create tags if they don't exist) (optional).
 
         Returns:
-            Dict[str, Any]: API confirmation response with attached tag identifiers.
+            dict[str, Any]: API confirmation response with attached tag identifiers.
                 The response shape is defined by the Karakeep API and typically
                 contains the list of attached tag IDs.
 
@@ -720,9 +719,9 @@ class KarakeepClient:
     async def delete_bookmark_tags(
         self,
         bookmark_id: str,
-        tag_ids: Optional[List[str]] = None,
-        tag_names: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        tag_ids: list[str] | None = None,
+        tag_names: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Detach one or more tags from a bookmark. Corresponds to DELETE /bookmarks/{bookmarkId}/tags.
 
         Args:
@@ -731,7 +730,7 @@ class KarakeepClient:
             tag_names: List of tag names to detach (optional).
 
         Returns:
-            Dict[str, Any]: API confirmation response with detached tag identifiers.
+            dict[str, Any]: API confirmation response with detached tag identifiers.
                 The response shape is defined by the Karakeep API and typically
                 contains the list of detached tag IDs.
 
@@ -910,7 +909,7 @@ class KarakeepClient:
             raise APIError(error_msg)
 
 
-def extract_url_from_bookmark(bookmark: Any, verbose: bool = False) -> Optional[str]:
+def extract_url_from_bookmark(bookmark: Any, verbose: bool = False) -> str | None:
     """Extract URL from a bookmark object.
 
     Args:
@@ -918,7 +917,7 @@ def extract_url_from_bookmark(bookmark: Any, verbose: bool = False) -> Optional[
         verbose: Enable verbose logging for error reporting.
 
     Returns:
-        Optional[str]: Extracted URL if present, otherwise None.
+        str | None: Extracted URL if present, otherwise None.
     """
     try:
         if not hasattr(bookmark, "content"):
@@ -943,10 +942,10 @@ def extract_url_from_bookmark(bookmark: Any, verbose: bool = False) -> Optional[
 
 
 async def get_all_urls(
-    api_key: Optional[str] = None,
-    base_url: Optional[str] = None,
+    api_key: str | None = None,
+    base_url: str | None = None,
     timeout: float = 30.0,
-) -> Set[str]:
+) -> set[str]:
     """Get URLs of all bookmarks in Karakeep.
 
     This function creates a KarakeepClient internally and extracts URLs from all bookmarks.
@@ -957,14 +956,14 @@ async def get_all_urls(
         timeout: Request timeout in seconds (default: 30.0).
 
     Returns:
-        Set[str]: Unique bookmark URLs discovered across all pages.
+        set[str]: Unique bookmark URLs discovered across all pages.
 
     Raises:
         ValueError: If API key or base URL is missing.
         APIError: If an API request fails.
     """
     async with KarakeepClient(api_key=api_key, base_url=base_url, timeout=timeout) as client:
-        all_urls: Set[str] = set()
+        all_urls: set[str] = set()
         next_cursor = None
 
         while True:

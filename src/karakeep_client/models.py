@@ -7,10 +7,8 @@ NOTE: models accept both snake_case and camelCase input. Default serialization
 uses camelCase alias; use `<object>.model_dump(by_alias=False)` for snake_case output.
 """
 
-from __future__ import annotations
-
 from enum import Enum
-from typing import List, Literal, Optional, Union
+from typing import Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -38,8 +36,8 @@ class StatusTypes(str, Enum):
 class NumBookmarksByAttachedType(KarakeepBaseModel):
     """Bookmark count split by attachment source."""
 
-    ai: Optional[float] = None
-    human: Optional[float] = None
+    ai: float | None = None
+    human: float | None = None
 
 
 class TagShort(KarakeepBaseModel):
@@ -70,26 +68,26 @@ class ContentTypeLink(KarakeepBaseModel):
 
     type: Literal["link"] = "link"
     url: str
-    title: Optional[str] = None
-    description: Optional[str] = None
-    image_url: Optional[str] = Field(default=None, alias="imageUrl")
-    image_asset_id: Optional[str] = Field(default=None, alias="imageAssetId")
-    screenshot_asset_id: Optional[str] = Field(default=None, alias="screenshotAssetId")
-    full_page_archive_asset_id: Optional[str] = Field(default=None, alias="fullPageArchiveAssetId")
-    precrawled_archive_asset_id: Optional[str] = Field(default=None, alias="precrawledArchiveAssetId")
-    video_asset_id: Optional[str] = Field(default=None, alias="videoAssetId")
-    favicon: Optional[str] = None
-    html_content: Optional[str] = Field(default=None, alias="htmlContent")
-    content_asset_id: Optional[str] = Field(default=None, alias="contentAssetId")
-    pdf_asset_id: Optional[str] = Field(default=None, alias="pdfAssetId")
-    crawl_status: Optional[Literal["success", "failure", "pending"]] = Field(
+    title: str | None = None
+    description: str | None = None
+    image_url: str | None = Field(default=None, alias="imageUrl")
+    image_asset_id: str | None = Field(default=None, alias="imageAssetId")
+    screenshot_asset_id: str | None = Field(default=None, alias="screenshotAssetId")
+    full_page_archive_asset_id: str | None = Field(default=None, alias="fullPageArchiveAssetId")
+    precrawled_archive_asset_id: str | None = Field(default=None, alias="precrawledArchiveAssetId")
+    video_asset_id: str | None = Field(default=None, alias="videoAssetId")
+    favicon: str | None = None
+    html_content: str | None = Field(default=None, alias="htmlContent")
+    content_asset_id: str | None = Field(default=None, alias="contentAssetId")
+    pdf_asset_id: str | None = Field(default=None, alias="pdfAssetId")
+    crawl_status: Literal["success", "failure", "pending"] | None = Field(
         default=None, alias="crawlStatus"
     )
-    crawled_at: Optional[str] = Field(default=None, alias="crawledAt")
-    author: Optional[str] = None
-    publisher: Optional[str] = None
-    date_published: Optional[str] = Field(default=None, alias="datePublished")
-    date_modified: Optional[str] = Field(default=None, alias="dateModified")
+    crawled_at: str | None = Field(default=None, alias="crawledAt")
+    author: str | None = None
+    publisher: str | None = None
+    date_published: str | None = Field(default=None, alias="datePublished")
+    date_modified: str | None = Field(default=None, alias="dateModified")
 
 
 class ContentTypeUnknown(KarakeepBaseModel):
@@ -103,7 +101,7 @@ class ContentTypeText(KarakeepBaseModel):
 
     type: Literal["text"] = "text"
     text: str
-    source_url: Optional[str] = Field(default=None, alias="sourceUrl")
+    source_url: str | None = Field(default=None, alias="sourceUrl")
 
 
 class ContentTypeAsset(KarakeepBaseModel):
@@ -112,10 +110,10 @@ class ContentTypeAsset(KarakeepBaseModel):
     type: Literal["asset"] = "asset"
     asset_type: Literal["image", "pdf"] = Field(alias="assetType")
     asset_id: str = Field(alias="assetId")
-    file_name: Optional[str] = Field(default=None, alias="fileName")
-    source_url: Optional[str] = Field(default=None, alias="sourceUrl")
-    size: Optional[float] = None
-    content: Optional[str] = None
+    file_name: str | None = Field(default=None, alias="fileName")
+    source_url: str | None = Field(default=None, alias="sourceUrl")
+    size: float | None = None
+    content: str | None = None
 
 
 class BookmarkAsset(KarakeepBaseModel):
@@ -136,7 +134,7 @@ class BookmarkAsset(KarakeepBaseModel):
         "avatar",
         "unknown",
     ] = Field(alias="assetType")
-    file_name: Optional[str] = Field(default=None, alias="fileName")
+    file_name: str | None = Field(default=None, alias="fileName")
 
 
 class Asset(KarakeepBaseModel):
@@ -153,30 +151,28 @@ class Bookmark(KarakeepBaseModel):
 
     id: str
     created_at: str = Field(alias="createdAt")
-    modified_at: Optional[str] = Field(alias="modifiedAt")
-    title: Optional[str] = None
+    modified_at: str | None = Field(alias="modifiedAt")
+    title: str | None = None
     archived: bool
     favourited: bool
-    source: Optional[
-        Literal["api", "web", "cli", "mobile", "extension", "singlefile", "rss", "import"]
-    ] = None
-    user_id: Optional[str] = Field(default=None, alias="userId")
-    tagging_status: Optional[Literal["success", "failure", "pending"]] = Field(alias="taggingStatus")
-    summarization_status: Optional[Literal["success", "failure", "pending"]] = Field(
+    source: Literal["api", "web", "cli", "mobile", "extension", "singlefile", "rss", "import"] | None = None
+    user_id: str | None = Field(default=None, alias="userId")
+    tagging_status: Literal["success", "failure", "pending"] | None = Field(alias="taggingStatus")
+    summarization_status: Literal["success", "failure", "pending"] | None = Field(
         default=None, alias="summarizationStatus"
     )
-    note: Optional[str] = None
-    summary: Optional[str] = None
-    tags: List[TagShort]
+    note: str | None = None
+    summary: str | None = None
+    tags: list[TagShort]
     content: Union[ContentTypeLink, ContentTypeText, ContentTypeAsset, ContentTypeUnknown]
-    assets: List[BookmarkAsset]
+    assets: list[BookmarkAsset]
 
 
 class PaginatedBookmarks(KarakeepBaseModel):
     """Cursor-paginated bookmark response."""
 
-    bookmarks: List[Bookmark]
-    next_cursor: Optional[str] = Field(alias="nextCursor")
+    bookmarks: list[Bookmark]
+    next_cursor: str | None = Field(alias="nextCursor")
 
 
 class Highlight(KarakeepBaseModel):
@@ -186,8 +182,8 @@ class Highlight(KarakeepBaseModel):
     start_offset: float = Field(alias="startOffset")
     end_offset: float = Field(alias="endOffset")
     color: Literal["yellow", "red", "green", "blue"] = "yellow"
-    text: Optional[str] = None
-    note: Optional[str] = None
+    text: str | None = None
+    note: str | None = None
     id: str
     user_id: str = Field(alias="userId")
     created_at: str = Field(alias="createdAt")
@@ -196,8 +192,8 @@ class Highlight(KarakeepBaseModel):
 class PaginatedHighlights(KarakeepBaseModel):
     """Cursor-paginated highlight response."""
 
-    highlights: List[Highlight]
-    next_cursor: Optional[str] = Field(alias="nextCursor")
+    highlights: list[Highlight]
+    next_cursor: str | None = Field(alias="nextCursor")
 
 
 class BookmarkList(KarakeepBaseModel):
@@ -205,11 +201,11 @@ class BookmarkList(KarakeepBaseModel):
 
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     icon: str
-    parent_id: Optional[str] = Field(default=None, alias="parentId")
+    parent_id: str | None = Field(default=None, alias="parentId")
     type: Literal["manual", "smart"] = "manual"
-    query: Optional[str] = None
+    query: str | None = None
     public: bool
     has_collaborators: bool = Field(alias="hasCollaborators")
     user_role: Literal["owner", "editor", "viewer", "public"] = Field(alias="userRole")
