@@ -12,25 +12,9 @@ from karakeep_client.models import (
     ContentTypeText,
     ContentTypeUnknown,
     Highlight,
-    StatusTypes,
     Tag,
     TagShort,
 )
-
-
-class TestStatusTypes:
-    """Test StatusTypes enum validation."""
-
-    def test_valid_status_values(self):
-        """Test that StatusTypes accepts valid enum values."""
-        assert StatusTypes.success == "success"
-        assert StatusTypes.failure == "failure"
-        assert StatusTypes.pending == "pending"
-
-    def test_status_types_string_comparison(self):
-        """Test that StatusTypes can be compared with strings."""
-        assert StatusTypes.success == "success"
-        assert StatusTypes.failure != "invalid"
 
 
 class TestTagShort:

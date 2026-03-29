@@ -7,7 +7,6 @@ NOTE: models accept both snake_case and camelCase input. Default serialization
 uses camelCase alias; use `<object>.model_dump(by_alias=False)` for snake_case output.
 """
 
-from enum import Enum
 from typing import Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,14 +22,6 @@ class KarakeepBaseModel(BaseModel):
         validate_by_alias=True,
         serialize_by_alias=True,
     )
-
-
-class StatusTypes(str, Enum):
-    """Generic operation status values returned by Karakeep."""
-
-    success = "success"
-    failure = "failure"
-    pending = "pending"
 
 
 class NumBookmarksByAttachedType(KarakeepBaseModel):
@@ -55,12 +46,6 @@ class Tag(KarakeepBaseModel):
     name: str
     num_bookmarks: float = Field(alias="numBookmarks")
     num_bookmarks_by_attached_type: NumBookmarksByAttachedType = Field(alias="numBookmarksByAttachedType")
-
-
-class Type(str, Enum):
-    """Legacy content type enum retained for compatibility."""
-
-    link = "link"
 
 
 class ContentTypeLink(KarakeepBaseModel):
