@@ -621,7 +621,7 @@ class KarakeepClient:
         self,
         bookmark_id: str,
         update_data: Dict[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> Bookmark:
         """Update a bookmark by its ID. Corresponds to PATCH /bookmarks/{bookmarkId}.
 
         Args:
@@ -629,7 +629,7 @@ class KarakeepClient:
             update_data: Dictionary containing the fields to update.
 
         Returns:
-            Dict[str, Any]: Partial bookmark representation returned by the API.
+            Bookmark: The updated bookmark.
 
         Raises:
             ValueError: If update_data is empty.
@@ -640,7 +640,12 @@ class KarakeepClient:
 
         endpoint = f"bookmarks/{bookmark_id}"
         response_data = await self._call("PATCH", endpoint, data=update_data)
-        return response_data
+
+        try:
+            return Bookmark.model_validate(response_data)
+        except Exception:
+            logger.exception("Failed to validate Bookmark response. Raw response: %s", response_data)
+            raise
 
     async def add_bookmark_tags(
         self,

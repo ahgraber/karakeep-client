@@ -332,10 +332,14 @@ async def test_update_bookmark_success(client: KarakeepClient):
         "id": bookmark_id,
         "createdAt": "2023-01-01T00:00:00Z",
         "modifiedAt": "2023-01-02T00:00:00Z",
+        "title": "Updated Title",
         "archived": True,
         "favourited": False,
         "taggingStatus": "success",
         "summarizationStatus": "success",
+        "tags": [],
+        "content": {"type": "link", "url": "https://example.com"},
+        "assets": [],
     }
 
     with patch.object(client, "_call", return_value=mock_response) as mock_call:
@@ -343,8 +347,11 @@ async def test_update_bookmark_success(client: KarakeepClient):
         result = await client.update_bookmark(bookmark_id, update_data)
 
     # Assert
-    assert result["id"] == bookmark_id
-    assert result["archived"] is True
+    from karakeep_client.models import Bookmark
+
+    assert isinstance(result, Bookmark)
+    assert result.id == bookmark_id
+    assert result.archived is True
     mock_call.assert_called_once_with("PATCH", f"bookmarks/{bookmark_id}", data=update_data)
 
 
