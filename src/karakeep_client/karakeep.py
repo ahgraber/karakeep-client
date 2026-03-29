@@ -647,6 +647,50 @@ class KarakeepClient:
             logger.exception("Failed to validate Bookmark response. Raw response: %s", response_data)
             raise
 
+    @staticmethod
+    def _build_tags_payload(
+        tag_ids: Optional[List[str]] = None,
+        tag_names: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Validate tag arguments and build the API request payload.
+
+        Args:
+            tag_ids: List of existing tag IDs.
+            tag_names: List of tag names.
+
+        Returns:
+            Dict[str, Any]: Request body in the format ``{"tags": [...]}``.
+
+        Raises:
+            ValueError: If no tags are provided or if arguments are invalid.
+        """
+        if not tag_ids and not tag_names:
+            raise ValueError("At least one of 'tag_ids' or 'tag_names' must be provided")
+
+        if tag_ids is not None and not isinstance(tag_ids, list):
+            raise ValueError("'tag_ids' must be a list of strings")
+
+        if tag_names is not None and not isinstance(tag_names, list):
+            raise ValueError("'tag_names' must be a list of strings")
+
+        if tag_ids:
+            for i, tag_id in enumerate(tag_ids):
+                if not isinstance(tag_id, str) or not tag_id.strip():
+                    raise ValueError(f"Tag ID at index {i} must be a non-empty string")
+
+        if tag_names:
+            for i, tag_name in enumerate(tag_names):
+                if not isinstance(tag_name, str) or not tag_name.strip():
+                    raise ValueError(f"Tag name at index {i} must be a non-empty string")
+
+        tags_list: List[Dict[str, str]] = []
+        if tag_ids:
+            tags_list.extend({"tagId": tid.strip()} for tid in tag_ids)
+        if tag_names:
+            tags_list.extend({"tagName": tname.strip()} for tname in tag_names)
+
+        return {"tags": tags_list}
+
     async def add_bookmark_tags(
         self,
         bookmark_id: str,
@@ -661,50 +705,17 @@ class KarakeepClient:
             tag_names: List of tag names to attach (will create tags if they don't exist) (optional).
 
         Returns:
-            Dict[str, Any]: API response with attached tag identifiers.
+            Dict[str, Any]: API confirmation response with attached tag identifiers.
+                The response shape is defined by the Karakeep API and typically
+                contains the list of attached tag IDs.
 
         Raises:
             ValueError: If no tags are provided or if arguments are invalid.
             APIError: If the API request fails.
         """
-        # Validate that at least one tag source is provided
-        if not tag_ids and not tag_names:
-            raise ValueError("At least one of 'tag_ids' or 'tag_names' must be provided")
-
-        # Validate input types
-        if tag_ids is not None and not isinstance(tag_ids, list):
-            raise ValueError("'tag_ids' must be a list of strings")
-
-        if tag_names is not None and not isinstance(tag_names, list):
-            raise ValueError("'tag_names' must be a list of strings")
-
-        # Validate individual elements
-        if tag_ids:
-            for i, tag_id in enumerate(tag_ids):
-                if not isinstance(tag_id, str) or not tag_id.strip():
-                    raise ValueError(f"Tag ID at index {i} must be a non-empty string")
-
-        if tag_names:
-            for i, tag_name in enumerate(tag_names):
-                if not isinstance(tag_name, str) or not tag_name.strip():
-                    raise ValueError(f"Tag name at index {i} must be a non-empty string")
-
-        # Construct the tags_data dict in the format expected by the API
-        tags_list = []
-
-        if tag_ids:
-            for tag_id in tag_ids:
-                tags_list.append({"tagId": tag_id.strip()})
-
-        if tag_names:
-            for tag_name in tag_names:
-                tags_list.append({"tagName": tag_name.strip()})
-
-        tags_data = {"tags": tags_list}
-
+        tags_data = self._build_tags_payload(tag_ids, tag_names)
         endpoint = f"bookmarks/{bookmark_id}/tags"
-        response_data = await self._call("POST", endpoint, data=tags_data)
-        return response_data
+        return await self._call("POST", endpoint, data=tags_data)
 
     async def delete_bookmark_tags(
         self,
@@ -720,50 +731,17 @@ class KarakeepClient:
             tag_names: List of tag names to detach (optional).
 
         Returns:
-            Dict[str, Any]: API response with detached tag identifiers.
+            Dict[str, Any]: API confirmation response with detached tag identifiers.
+                The response shape is defined by the Karakeep API and typically
+                contains the list of detached tag IDs.
 
         Raises:
             ValueError: If no tags are provided or if arguments are invalid.
             APIError: If the API request fails.
         """
-        # Validate that at least one tag source is provided
-        if not tag_ids and not tag_names:
-            raise ValueError("At least one of 'tag_ids' or 'tag_names' must be provided")
-
-        # Validate input types
-        if tag_ids is not None and not isinstance(tag_ids, list):
-            raise ValueError("'tag_ids' must be a list of strings")
-
-        if tag_names is not None and not isinstance(tag_names, list):
-            raise ValueError("'tag_names' must be a list of strings")
-
-        # Validate individual elements
-        if tag_ids:
-            for i, tag_id in enumerate(tag_ids):
-                if not isinstance(tag_id, str) or not tag_id.strip():
-                    raise ValueError(f"Tag ID at index {i} must be a non-empty string")
-
-        if tag_names:
-            for i, tag_name in enumerate(tag_names):
-                if not isinstance(tag_name, str) or not tag_name.strip():
-                    raise ValueError(f"Tag name at index {i} must be a non-empty string")
-
-        # Construct the tags_data dict in the format expected by the API
-        tags_list = []
-
-        if tag_ids:
-            for tag_id in tag_ids:
-                tags_list.append({"tagId": tag_id.strip()})
-
-        if tag_names:
-            for tag_name in tag_names:
-                tags_list.append({"tagName": tag_name.strip()})
-
-        tags_data = {"tags": tags_list}
-
+        tags_data = self._build_tags_payload(tag_ids, tag_names)
         endpoint = f"bookmarks/{bookmark_id}/tags"
-        response_data = await self._call("DELETE", endpoint, data=tags_data)
-        return response_data
+        return await self._call("DELETE", endpoint, data=tags_data)
 
     async def attach_bookmark_asset(
         self,
