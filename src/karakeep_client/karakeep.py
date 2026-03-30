@@ -3,6 +3,7 @@
 import asyncio
 from collections.abc import Iterator
 import contextlib
+import dataclasses
 import json
 import logging
 import os
@@ -94,6 +95,19 @@ class APIError(Exception):
 
 class AuthenticationError(APIError):
     """Exception raised for authentication errors (401)."""
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class _PreparedRequest:
+    """Bundle of prepared request parameters passed from _call to _make_request."""
+
+    method: str
+    url: str
+    params: dict[str, Any] | None
+    data: dict[str, Any] | None
+    files: dict[str, Any] | None
+    headers: dict[str, str]
+    extra_headers: dict[str, str] | None
 
 
 class KarakeepClient:
@@ -232,32 +246,36 @@ class KarakeepClient:
             if data:
                 logger.debug("Request data: %s", data)
 
+        req = _PreparedRequest(
+            method=method,
+            url=url,
+            params=params,
+            data=data,
+            files=files,
+            headers=headers,
+            extra_headers=extra_headers,
+        )
+
         if self._client is None:
             async with self._ensure_client() as client:
-                return await self._make_request(client, method, url, params, data, files, headers, extra_headers)
+                return await self._make_request(client, req)
 
-        return await self._make_request(self._client, method, url, params, data, files, headers, extra_headers)
+        return await self._make_request(self._client, req)
 
     async def _make_request(
         self,
         client: httpx.AsyncClient,
-        method: str,
-        url: str,
-        params: dict[str, Any] | None,
-        data: dict[str, Any] | None,
-        files: dict[str, Any] | None,
-        headers: dict[str, str],
-        extra_headers: dict[str, str] | None,
+        req: _PreparedRequest,
     ) -> Any:
         """Execute a request with the provided client."""
         try:
             response = await client.request(
-                method=method,
-                url=url,
-                params=params,
-                json=data if data and not files else None,
-                files=files,
-                headers=headers,
+                method=req.method,
+                url=req.url,
+                params=req.params,
+                json=req.data if req.data and not req.files else None,
+                files=req.files,
+                headers=req.headers,
             )
 
             if response.status_code == 401:
@@ -270,7 +288,7 @@ class KarakeepClient:
             response.raise_for_status()
 
             # For asset endpoints with Accept: */* header, return raw bytes
-            if extra_headers and extra_headers.get("Accept") == "*/*":
+            if req.extra_headers and req.extra_headers.get("Accept") == "*/*":
                 return response.content
 
             # Try to parse as JSON
@@ -281,7 +299,7 @@ class KarakeepClient:
                 return response.content
 
         except httpx.HTTPStatusError as e:
-            error_msg = f"HTTP {e.response.status_code} error for {method} {url}"
+            error_msg = f"HTTP {e.response.status_code} error for {req.method} {req.url}"
             try:
                 error_detail = e.response.json()
                 error_msg += f": {error_detail}"
@@ -289,7 +307,7 @@ class KarakeepClient:
                 error_msg += f": {e.response.text}"
             raise APIError(error_msg) from e
         except httpx.RequestError as e:
-            raise APIError(f"Request failed for {method} {url}: {e}") from e
+            raise APIError(f"Request failed for {req.method} {req.url}: {e}") from e
 
     async def get_bookmarks_paged(
         self,
