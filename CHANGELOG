@@ -1,5 +1,23 @@
 # Changelog
 
+## `v0.4.0` — [2026-03-30]
+
+- build(docs): add Justfile and mod files for documentation management [441772b]
+- fix(client): align response models with API schema [c5c9206]
+- refactor(client): introduce _PreparedRequest dataclass to reduce _make_request signature [154b18f]
+- refactor(client): type extract_url_from_bookmark with Bookmark model [d63f69c]
+- refactor(models): remove dead StatusTypes and Type enums in favor of Literal types [3b0f10c]
+- refactor: modernize typing to PEP 604/585 builtins for Python 3.12+ [6cc4a9e]
+- fix(deps): move unused runtime deps to dev group and fix ruff config [1957bb9]
+- chore: update dependencies to mitigate security vulnerabilities [3ad750b]
+- refactor(client): extract duplicated tag validation into _build_tags_payload [9b1dde8]
+- fix(client): return Bookmark model from update_bookmark instead of raw dict [4862537]
+- fix(client): stop swallowing exceptions in get_all_urls and fix resource leak [f28c1f6]
+- fix(client): stop swallowing exceptions in get_bookmark_id_by_url [a7c5907]
+- feat(docs): translate and derive sdd specifications for karakeep client features [3e8a40a]
+- feat(docs): close the feature & archive spec for documentation infrastructure and requirements [dd99451]
+- Refactor documentation and update pre-commit configuration (#3) [c9567ce]
+
 ## `v0.3.0` — [2026-01-07]
 
 - feat(deps): update dependencies to resolve security vulnerability in urllib3 [a376fef]
