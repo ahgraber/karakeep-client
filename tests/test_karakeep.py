@@ -875,22 +875,26 @@ class TestURLValidation:
     """Test URL validation functionality."""
 
     @pytest.mark.parametrize(
-        "valid_url",
+        "input_url,expected_output",
         [
-            "https://example.com",
-            "http://example.com",
-            "https://sub.example.com/path",
-            "https://example.com:8080/path?query=value#fragment",
+            # trailing slash added by HttpUrl normalization
+            ("https://example.com", "https://example.com/"),
+            ("http://example.com", "http://example.com/"),
+            # path preserved
+            ("https://sub.example.com/path", "https://sub.example.com/path"),
+            # port, query, fragment preserved
+            (
+                "https://example.com:8080/path?query=value#fragment",
+                "https://example.com:8080/path?query=value#fragment",
+            ),
         ],
     )
-    def test_validate_url_valid_urls(self, valid_url):
-        """Test validate_url with valid URLs."""
+    def test_validate_url_valid_urls(self, input_url, expected_output):
+        """Test validate_url returns the expected normalized form."""
         from karakeep_client.karakeep import validate_url
 
-        # Act & Assert - should not raise exception
-        result = validate_url(valid_url)
-        assert isinstance(result, str)
-        assert result  # Non-empty result
+        result = validate_url(input_url)
+        assert result == expected_output
 
     @pytest.mark.parametrize(
         "invalid_url,expected_error",

@@ -93,6 +93,9 @@ data/
 *.html
 *.pdf
 
+# ai
+docs/superpowers
+
 # temp / working files & folders
 *.bak
 *.log
