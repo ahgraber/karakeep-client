@@ -909,35 +909,23 @@ class KarakeepClient:
             raise APIError(error_msg)
 
 
-def extract_url_from_bookmark(bookmark: Any, verbose: bool = False) -> str | None:
-    """Extract URL from a bookmark object.
+def extract_url_from_bookmark(bookmark: Bookmark, verbose: bool = False) -> str | None:
+    """Extract URL from a bookmark object based on its content type.
 
     Args:
-        bookmark: Bookmark object (Pydantic model).
-        verbose: Enable verbose logging for error reporting.
+        bookmark: Validated Bookmark model instance.
+        verbose: Enable verbose logging (currently unused, retained for API compatibility).
 
     Returns:
-        str | None: Extracted URL if present, otherwise None.
+        str | None: The URL for link bookmarks, source_url for text/asset bookmarks,
+            or None if no URL is extractable.
     """
-    try:
-        if not hasattr(bookmark, "content"):
-            return None
-        content = bookmark.content
-
-        # Get content type
-        content_type = getattr(content, "type", None)
-
-        # Extract URL based on content type
-        if content_type == "link":
-            return getattr(content, "url", None)
-        elif content_type in ("asset", "text"):
-            return getattr(content, "source_url", None)
-        else:
-            return None
-
-    except Exception as e:
-        if verbose:
-            logger.warning("Error extracting URL from bookmark: %s", e)
+    content = bookmark.content
+    if content.type == "link":
+        return content.url
+    elif content.type in ("asset", "text"):
+        return getattr(content, "source_url", None)
+    else:
         return None
 
 
