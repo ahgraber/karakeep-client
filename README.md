@@ -139,4 +139,22 @@ For self-hosted Docat packaging and upload handoff, see `docs/docat-handoff.md`.
 
 Contributions and fixes are welcome. Please open issues or pull requests with clear descriptions and tests where appropriate.
 
-Publishing is supported using [floRaths/uv-ship: a CLI-tool for shipping with uv](https://github.com/floRaths/uv-ship)
+### Releasing
+
+This project uses [uv-ship](https://github.com/floRaths/uv-ship) to manage releases. Install it as a uv tool:
+
+```bash
+uv tool install uv-ship
+```
+
+To cut a release:
+
+```bash
+# do a dry run first!
+uv-ship --dry-run next <major | minor | patch>
+
+# if everything looks good, ship it
+uv-ship next <major | minor | patch>
+```
+
+This bumps the version in `pyproject.toml`, updates `CHANGELOG`, commits, tags, and pushes. See `[tool.uv-ship]` in `pyproject.toml` for configuration.
