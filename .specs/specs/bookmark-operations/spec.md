@@ -59,7 +59,7 @@ The client SHALL provide a method to search bookmarks by a required query string
 
 ### Requirement: Look up bookmark ID by URL
 
-The client SHALL provide a method to find a bookmark's ID by its URL, performing URL normalization to match bookmarks that differ only by trailing slash or scheme normalization.
+The client SHALL provide a method to find a bookmark's ID by its URL, performing URL normalization to match bookmarks that differ only by trailing slash or scheme normalization. Search results whose extracted URL is not a valid URL SHALL be skipped rather than aborting the lookup.
 
 #### Scenario: URL match found
 
@@ -78,6 +78,19 @@ The client SHALL provide a method to find a bookmark's ID by its URL, performing
 - **GIVEN** the input URL is empty or whitespace-only
 - **WHEN** `get_bookmark_id_by_url(url)` is called
 - **THEN** `None` is returned without making an API request
+
+#### Scenario: Text bookmark with non-URL source_url is skipped
+
+- **GIVEN** search results include a text bookmark whose `source_url` is not a valid URL,
+  followed by a link bookmark whose URL matches the lookup target
+- **WHEN** `get_bookmark_id_by_url(url)` is called
+- **THEN** the text bookmark is skipped silently and the matching link bookmark's ID is returned
+
+#### Scenario: All candidates have non-URL source_url
+
+- **GIVEN** all search results have non-URL or absent extractable URLs
+- **WHEN** `get_bookmark_id_by_url(url)` is called
+- **THEN** `None` is returned
 
 ### Requirement: Create bookmarks by type
 
@@ -123,15 +136,17 @@ The client SHALL provide a method to delete a bookmark by its ID, returning `Non
 
 ### Requirement: Update a bookmark by ID
 
-The client SHALL provide a method to partially update a bookmark by its ID using a dictionary of fields to change.
+The client SHALL provide a method to partially update a bookmark by its ID, returning a
+`BookmarkUpdateResponse` reflecting the metadata fields present in the PATCH response.
+Tags, content, and assets are not included in the PATCH response.
 
-#### Scenario: Successful update
+#### Scenario: Successful update returns partial response model
 
 - **GIVEN** a valid bookmark ID and non-empty update data
 - **WHEN** `update_bookmark(bookmark_id, update_data)` is called
-- **THEN** the API response with updated fields is returned
+- **THEN** a `BookmarkUpdateResponse` is returned containing the updated metadata fields
 
-**Schema reference:** karakeep-api.json `PATCH /bookmarks/{bookmarkId}` — partial update request body; response partial `Bookmark`
+**Schema reference:** karakeep-api.json `PATCH /bookmarks/{bookmarkId}` — partial update request body; response partial bookmark (metadata only, no `tags`/`content`/`assets`)
 
 #### Scenario: Empty update data
 

@@ -599,3 +599,97 @@ class TestBookmarkList:
         }
         bookmark_list = BookmarkList.model_validate(list_data)
         assert bookmark_list.type == "manual"  # Default value
+
+
+class TestBookmarkUpdateResponse:
+    """Tests for BookmarkUpdateResponse — the PATCH /bookmarks/{id} partial response model."""
+
+    def test_required_fields_only(self):
+        """Minimal PATCH response (no tags/content/assets) validates successfully."""
+        from karakeep_client.models import BookmarkUpdateResponse
+
+        data = {
+            "id": "bm1",
+            "createdAt": "2023-01-01T00:00:00Z",
+            "modifiedAt": None,
+            "archived": False,
+            "favourited": True,
+            "taggingStatus": None,
+            "summarizationStatus": None,
+            "userId": "user1",
+        }
+        result = BookmarkUpdateResponse.model_validate(data)
+        assert result.id == "bm1"
+        assert result.favourited is True
+        assert result.title is None
+        assert result.note is None
+        assert result.summary is None
+
+    def test_optional_fields_populated(self):
+        """Optional fields are accepted when present."""
+        from karakeep_client.models import BookmarkUpdateResponse
+
+        data = {
+            "id": "bm1",
+            "createdAt": "2023-01-01T00:00:00Z",
+            "modifiedAt": "2023-01-02T00:00:00Z",
+            "title": "Updated",
+            "archived": True,
+            "favourited": False,
+            "taggingStatus": "success",
+            "summarizationStatus": "pending",
+            "note": "a note",
+            "summary": "a summary",
+            "source": "api",
+            "userId": "user1",
+        }
+        result = BookmarkUpdateResponse.model_validate(data)
+        assert result.title == "Updated"
+        assert result.note == "a note"
+        assert result.source == "api"
+
+    def test_camel_case_aliases(self):
+        """camelCase field names from the API are accepted."""
+        from karakeep_client.models import BookmarkUpdateResponse
+
+        data = {
+            "id": "bm1",
+            "createdAt": "2023-01-01T00:00:00Z",
+            "modifiedAt": None,
+            "archived": False,
+            "favourited": False,
+            "taggingStatus": "failure",
+            "summarizationStatus": None,
+            "userId": "user1",
+        }
+        result = BookmarkUpdateResponse.model_validate(data)
+        assert result.tagging_status == "failure"
+        assert result.user_id == "user1"
+
+
+class TestBookmarkTagsResponses:
+    """Tests for BookmarkTagsAttachResponse and BookmarkTagsDetachResponse."""
+
+    def test_attach_response_validates(self):
+        from karakeep_client.models import BookmarkTagsAttachResponse
+
+        result = BookmarkTagsAttachResponse.model_validate({"attached": ["id1", "id2"]})
+        assert result.attached == ["id1", "id2"]
+
+    def test_attach_response_empty_list(self):
+        from karakeep_client.models import BookmarkTagsAttachResponse
+
+        result = BookmarkTagsAttachResponse.model_validate({"attached": []})
+        assert result.attached == []
+
+    def test_detach_response_validates(self):
+        from karakeep_client.models import BookmarkTagsDetachResponse
+
+        result = BookmarkTagsDetachResponse.model_validate({"detached": ["id1"]})
+        assert result.detached == ["id1"]
+
+    def test_attach_missing_field_raises(self):
+        from karakeep_client.models import BookmarkTagsAttachResponse
+
+        with pytest.raises(ValidationError):
+            BookmarkTagsAttachResponse.model_validate({})

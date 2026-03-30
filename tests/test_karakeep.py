@@ -2,6 +2,7 @@ import asyncio
 import json
 from unittest.mock import AsyncMock, mock_open, patch
 
+from hypothesis import assume, given, settings, strategies as st
 import pytest
 
 from karakeep_client.karakeep import APIError, AuthenticationError, KarakeepClient
@@ -337,9 +338,7 @@ async def test_update_bookmark_success(client: KarakeepClient):
         "favourited": False,
         "taggingStatus": "success",
         "summarizationStatus": "success",
-        "tags": [],
-        "content": {"type": "link", "url": "https://example.com"},
-        "assets": [],
+        "userId": "user1",
     }
 
     with patch.object(client, "_call", return_value=mock_response) as mock_call:
@@ -347,12 +346,36 @@ async def test_update_bookmark_success(client: KarakeepClient):
         result = await client.update_bookmark(bookmark_id, update_data)
 
     # Assert
-    from karakeep_client.models import Bookmark
+    from karakeep_client.models import BookmarkUpdateResponse
 
-    assert isinstance(result, Bookmark)
+    assert isinstance(result, BookmarkUpdateResponse)
     assert result.id == bookmark_id
     assert result.archived is True
     mock_call.assert_called_once_with("PATCH", f"bookmarks/{bookmark_id}", data=update_data)
+
+
+@pytest.mark.asyncio
+async def test_update_bookmark_minimal_patch_response(client: KarakeepClient):
+    """PATCH response without tags/content/assets validates without error."""
+    mock_response = {
+        "id": "bookmark1",
+        "createdAt": "2023-01-01T00:00:00Z",
+        "modifiedAt": None,
+        "archived": False,
+        "favourited": False,
+        "taggingStatus": None,
+        "summarizationStatus": None,
+        "userId": "user1",
+    }
+
+    with patch.object(client, "_call", return_value=mock_response):
+        result = await client.update_bookmark("bookmark1", {"archived": False})
+
+    from karakeep_client.models import BookmarkUpdateResponse
+
+    assert isinstance(result, BookmarkUpdateResponse)
+    assert result.title is None
+    assert result.note is None
 
 
 @pytest.mark.asyncio
@@ -368,7 +391,10 @@ async def test_add_bookmark_tags_with_tag_ids(client: KarakeepClient):
         result = await client.add_bookmark_tags(bookmark_id, tag_ids=tag_ids)
 
     # Assert
-    assert result["attached"] == tag_ids
+    from karakeep_client.models import BookmarkTagsAttachResponse
+
+    assert isinstance(result, BookmarkTagsAttachResponse)
+    assert result.attached == tag_ids
     mock_call.assert_called_once_with(
         "POST", f"bookmarks/{bookmark_id}/tags", data={"tags": [{"tagId": "tag1"}, {"tagId": "tag2"}]}
     )
@@ -387,9 +413,31 @@ async def test_add_bookmark_tags_with_tag_names(client: KarakeepClient):
         result = await client.add_bookmark_tags(bookmark_id, tag_names=tag_names)
 
     # Assert
-    assert "attached" in result
+    from karakeep_client.models import BookmarkTagsAttachResponse
+
+    assert isinstance(result, BookmarkTagsAttachResponse)
+    assert result.attached == ["tag1", "tag2"]
     mock_call.assert_called_once_with(
         "POST", f"bookmarks/{bookmark_id}/tags", data={"tags": [{"tagName": "python"}, {"tagName": "tutorial"}]}
+    )
+
+
+@pytest.mark.asyncio
+async def test_delete_bookmark_tags_success(client: KarakeepClient):
+    """Test delete_bookmark_tags returns BookmarkTagsDetachResponse."""
+    bookmark_id = "bookmark1"
+    tag_ids = ["tag1", "tag2"]
+    mock_response = {"detached": tag_ids}
+
+    with patch.object(client, "_call", return_value=mock_response) as mock_call:
+        result = await client.delete_bookmark_tags(bookmark_id, tag_ids=tag_ids)
+
+    from karakeep_client.models import BookmarkTagsDetachResponse
+
+    assert isinstance(result, BookmarkTagsDetachResponse)
+    assert result.detached == tag_ids
+    mock_call.assert_called_once_with(
+        "DELETE", f"bookmarks/{bookmark_id}/tags", data={"tags": [{"tagId": "tag1"}, {"tagId": "tag2"}]}
     )
 
 
@@ -630,6 +678,87 @@ async def test_get_bookmark_id_by_url_normalization(client: KarakeepClient):
 
 
 @pytest.mark.asyncio
+async def test_get_bookmark_id_by_url_skips_malformed_source_url(client: KarakeepClient):
+    """A text bookmark with a non-URL source_url is skipped; the matching link bookmark is still found."""
+    search_response = {
+        "bookmarks": [
+            {
+                "id": "text_bookmark",
+                "createdAt": "2023-01-01T00:00:00Z",
+                "modifiedAt": None,
+                "title": "Text",
+                "archived": False,
+                "favourited": False,
+                "taggingStatus": None,
+                "summarizationStatus": None,
+                "note": None,
+                "summary": None,
+                "tags": [],
+                "content": {"type": "text", "text": "notes", "sourceUrl": "not a url at all"},
+                "assets": [],
+            },
+            {
+                "id": "link_bookmark",
+                "createdAt": "2023-01-01T00:00:00Z",
+                "modifiedAt": None,
+                "title": "Link",
+                "archived": False,
+                "favourited": False,
+                "taggingStatus": None,
+                "summarizationStatus": None,
+                "note": None,
+                "summary": None,
+                "tags": [],
+                "content": {"type": "link", "url": "https://example.com/"},
+                "assets": [],
+            },
+        ],
+        "nextCursor": None,
+    }
+
+    with patch.object(client, "search_bookmarks") as mock_search:
+        from karakeep_client.models import PaginatedBookmarks
+
+        mock_search.return_value = PaginatedBookmarks.model_validate(search_response)
+        result = await client.get_bookmark_id_by_url("https://example.com")
+
+    assert result == "link_bookmark"
+
+
+@pytest.mark.asyncio
+async def test_get_bookmark_id_by_url_all_candidates_malformed(client: KarakeepClient):
+    """Returns None when all search results have non-URL source URLs."""
+    search_response = {
+        "bookmarks": [
+            {
+                "id": "text_bookmark",
+                "createdAt": "2023-01-01T00:00:00Z",
+                "modifiedAt": None,
+                "title": "Text",
+                "archived": False,
+                "favourited": False,
+                "taggingStatus": None,
+                "summarizationStatus": None,
+                "note": None,
+                "summary": None,
+                "tags": [],
+                "content": {"type": "text", "text": "notes", "sourceUrl": "not a url"},
+                "assets": [],
+            },
+        ],
+        "nextCursor": None,
+    }
+
+    with patch.object(client, "search_bookmarks") as mock_search:
+        from karakeep_client.models import PaginatedBookmarks
+
+        mock_search.return_value = PaginatedBookmarks.model_validate(search_response)
+        result = await client.get_bookmark_id_by_url("https://example.com")
+
+    assert result is None
+
+
+@pytest.mark.asyncio
 async def test_get_bookmark_id_by_url_not_found(client: KarakeepClient):
     """Test get_bookmark_id_by_url returns None when bookmark not found."""
     # Arrange
@@ -780,6 +909,40 @@ class TestURLValidation:
         # Act & Assert
         with pytest.raises(ValueError, match=expected_error):
             validate_url(invalid_url)
+
+
+class TestValidateUrlProperties:
+    """Property-based tests for validate_url using Hypothesis."""
+
+    @given(st.text())
+    @settings(max_examples=500)
+    def test_no_unexpected_exceptions(self, url: str) -> None:
+        """validate_url only ever raises ValueError or returns a non-empty str."""
+        from karakeep_client.karakeep import validate_url
+
+        try:
+            result = validate_url(url)
+            assert isinstance(result, str)
+            assert result
+        except ValueError:
+            pass
+
+    @given(
+        st.from_regex(
+            r"https://[a-z]{3,10}\.[a-z]{2,4}(/[a-z0-9]{0,8})?",
+            fullmatch=True,
+        )
+    )
+    def test_idempotent_on_valid_inputs(self, url: str) -> None:
+        """validate_url(validate_url(url)) == validate_url(url) for inputs that pass."""
+        from karakeep_client.karakeep import validate_url
+
+        try:
+            first = validate_url(url)
+        except ValueError:
+            assume(False)  # discard — only test idempotency on inputs that actually pass
+        second = validate_url(first)
+        assert first == second
 
 
 @pytest.mark.asyncio

@@ -131,6 +131,43 @@ class Asset(KarakeepBaseModel):
     file_name: str = Field(alias="fileName")
 
 
+class BookmarkUpdateResponse(KarakeepBaseModel):
+    """Partial bookmark record returned by PATCH /bookmarks/{bookmarkId}.
+
+    The PATCH endpoint returns metadata fields only — tags, content, and assets
+    are not included in the response.
+    """
+
+    id: str
+    created_at: str = Field(alias="createdAt")
+    modified_at: str | None = Field(alias="modifiedAt")
+    title: str | None = None
+    archived: bool
+    favourited: bool
+    source: Literal["api", "web", "cli", "mobile", "extension", "singlefile", "rss", "import"] | None = None
+    user_id: str | None = Field(default=None, alias="userId")
+    tagging_status: Literal["success", "failure", "pending"] | None = Field(
+        default=None, alias="taggingStatus"
+    )
+    summarization_status: Literal["success", "failure", "pending"] | None = Field(
+        default=None, alias="summarizationStatus"
+    )
+    note: str | None = None
+    summary: str | None = None
+
+
+class BookmarkTagsAttachResponse(KarakeepBaseModel):
+    """Response from POST /bookmarks/{bookmarkId}/tags."""
+
+    attached: list[str]
+
+
+class BookmarkTagsDetachResponse(KarakeepBaseModel):
+    """Response from DELETE /bookmarks/{bookmarkId}/tags."""
+
+    detached: list[str]
+
+
 class Bookmark(KarakeepBaseModel):
     """Primary bookmark record returned by the Karakeep API."""
 

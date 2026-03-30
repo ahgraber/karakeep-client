@@ -19,6 +19,9 @@ from .models import (
     Asset,
     Bookmark,
     BookmarkAsset,
+    BookmarkTagsAttachResponse,
+    BookmarkTagsDetachResponse,
+    BookmarkUpdateResponse,
     PaginatedBookmarks,
 )
 
@@ -451,8 +454,14 @@ class KarakeepClient:
         # Find exact URL match
         for bookmark in search_response.bookmarks:
             bookmark_url = extract_url_from_bookmark(bookmark, self.verbose)
-            if bookmark_url and validate_url(bookmark_url.strip()) == url:
-                return bookmark.id
+            if not bookmark_url:
+                continue
+            try:
+                if validate_url(bookmark_url.strip()) == url:
+                    return bookmark.id
+            except ValueError:
+                logger.debug("Skipping bookmark %s: non-URL source_url %r", bookmark.id, bookmark_url)
+                continue
 
         return None
 
@@ -638,7 +647,7 @@ class KarakeepClient:
         self,
         bookmark_id: str,
         update_data: dict[str, Any],
-    ) -> Bookmark:
+    ) -> BookmarkUpdateResponse:
         """Update a bookmark by its ID. Corresponds to PATCH /bookmarks/{bookmarkId}.
 
         Args:
@@ -646,7 +655,8 @@ class KarakeepClient:
             update_data: Dictionary containing the fields to update.
 
         Returns:
-            Bookmark: The updated bookmark.
+            BookmarkUpdateResponse: Metadata fields of the updated bookmark.
+                Tags, content, and assets are not included in the PATCH response.
 
         Raises:
             ValueError: If update_data is empty.
@@ -659,9 +669,9 @@ class KarakeepClient:
         response_data = await self._call("PATCH", endpoint, data=update_data)
 
         try:
-            return Bookmark.model_validate(response_data)
+            return BookmarkUpdateResponse.model_validate(response_data)
         except Exception:
-            logger.exception("Failed to validate Bookmark response. Raw response: %s", response_data)
+            logger.exception("Failed to validate BookmarkUpdateResponse. Raw response: %s", response_data)
             raise
 
     @staticmethod
@@ -713,7 +723,7 @@ class KarakeepClient:
         bookmark_id: str,
         tag_ids: list[str] | None = None,
         tag_names: list[str] | None = None,
-    ) -> dict[str, Any]:
+    ) -> BookmarkTagsAttachResponse:
         """Attach one or more tags to a bookmark. Corresponds to POST /bookmarks/{bookmarkId}/tags.
 
         Args:
@@ -722,9 +732,7 @@ class KarakeepClient:
             tag_names: List of tag names to attach (will create tags if they don't exist) (optional).
 
         Returns:
-            dict[str, Any]: API confirmation response with attached tag identifiers.
-                The response shape is defined by the Karakeep API and typically
-                contains the list of attached tag IDs.
+            BookmarkTagsAttachResponse: Response containing the list of attached tag IDs.
 
         Raises:
             ValueError: If no tags are provided or if arguments are invalid.
@@ -732,14 +740,15 @@ class KarakeepClient:
         """
         tags_data = self._build_tags_payload(tag_ids, tag_names)
         endpoint = f"bookmarks/{bookmark_id}/tags"
-        return await self._call("POST", endpoint, data=tags_data)
+        response_data = await self._call("POST", endpoint, data=tags_data)
+        return BookmarkTagsAttachResponse.model_validate(response_data)
 
     async def delete_bookmark_tags(
         self,
         bookmark_id: str,
         tag_ids: list[str] | None = None,
         tag_names: list[str] | None = None,
-    ) -> dict[str, Any]:
+    ) -> BookmarkTagsDetachResponse:
         """Detach one or more tags from a bookmark. Corresponds to DELETE /bookmarks/{bookmarkId}/tags.
 
         Args:
@@ -748,9 +757,7 @@ class KarakeepClient:
             tag_names: List of tag names to detach (optional).
 
         Returns:
-            dict[str, Any]: API confirmation response with detached tag identifiers.
-                The response shape is defined by the Karakeep API and typically
-                contains the list of detached tag IDs.
+            BookmarkTagsDetachResponse: Response containing the list of detached tag IDs.
 
         Raises:
             ValueError: If no tags are provided or if arguments are invalid.
@@ -758,7 +765,8 @@ class KarakeepClient:
         """
         tags_data = self._build_tags_payload(tag_ids, tag_names)
         endpoint = f"bookmarks/{bookmark_id}/tags"
-        return await self._call("DELETE", endpoint, data=tags_data)
+        response_data = await self._call("DELETE", endpoint, data=tags_data)
+        return BookmarkTagsDetachResponse.model_validate(response_data)
 
     async def attach_bookmark_asset(
         self,
