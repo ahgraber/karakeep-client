@@ -577,14 +577,56 @@ def test_close_runs_async_close_when_no_running_loop(client: KarakeepClient):
     assert client._client is None
 
 
-def test_extract_url_from_bookmark():
-    """Test that _extract_url_from_bookmark returns appropriate URLs."""
+@pytest.mark.parametrize(
+    "content_data,expected_url",
+    [
+        # link content -> returns url
+        (
+            {"type": "link", "url": "https://example.com/link"},
+            "https://example.com/link",
+        ),
+        # text content with sourceUrl -> returns sourceUrl
+        (
+            {"type": "text", "text": "Some text", "sourceUrl": "https://example.com/source"},
+            "https://example.com/source",
+        ),
+        # text content without sourceUrl -> returns None
+        (
+            {"type": "text", "text": "Some text without sourceUrl"},
+            None,
+        ),
+        # asset content with sourceUrl -> returns sourceUrl
+        (
+            {"type": "asset", "assetType": "pdf", "assetId": "pdf123", "sourceUrl": "https://example.com/asset-source"},
+            "https://example.com/asset-source",
+        ),
+        # asset content without sourceUrl -> returns None
+        (
+            {"type": "asset", "assetType": "image", "assetId": "img456"},
+            None,
+        ),
+        # unknown content type -> returns None
+        (
+            {"type": "unknown"},
+            None,
+        ),
+    ],
+    ids=[
+        "link",
+        "text-with-source-url",
+        "text-no-source-url",
+        "asset-with-source-url",
+        "asset-no-source-url",
+        "unknown",
+    ],
+)
+def test_extract_url_from_bookmark(content_data, expected_url):
+    """Test that extract_url_from_bookmark returns the correct URL for each content type."""
     from karakeep_client.karakeep import extract_url_from_bookmark
     from karakeep_client.models import Bookmark
 
-    # Test with link content
-    link_bookmark_data = {
-        "id": "link_bookmark",
+    bookmark_data = {
+        "id": "test_bookmark",
         "createdAt": "2023-01-01T00:00:00Z",
         "modifiedAt": None,
         "title": "Test",
@@ -595,49 +637,11 @@ def test_extract_url_from_bookmark():
         "note": None,
         "summary": None,
         "tags": [],
-        "content": {"type": "link", "url": "https://example.com/link"},
+        "content": content_data,
         "assets": [],
     }
-    link_bookmark = Bookmark.model_validate(link_bookmark_data)
-    assert extract_url_from_bookmark(link_bookmark) == "https://example.com/link"
-
-    # Test with text content having sourceUrl
-    text_bookmark_data = {
-        "id": "text_bookmark",
-        "createdAt": "2023-01-01T00:00:00Z",
-        "modifiedAt": None,
-        "title": "Test",
-        "archived": False,
-        "favourited": False,
-        "taggingStatus": "success",
-        "summarizationStatus": None,
-        "note": None,
-        "summary": None,
-        "tags": [],
-        "content": {"type": "text", "text": "Some text", "sourceUrl": "https://example.com/source"},
-        "assets": [],
-    }
-    text_bookmark = Bookmark.model_validate(text_bookmark_data)
-    assert extract_url_from_bookmark(text_bookmark) == "https://example.com/source"
-
-    # Test with no extractable URL
-    no_url_bookmark_data = {
-        "id": "no_url_bookmark",
-        "createdAt": "2023-01-01T00:00:00Z",
-        "modifiedAt": None,
-        "title": "Test",
-        "archived": False,
-        "favourited": False,
-        "taggingStatus": "success",
-        "summarizationStatus": None,
-        "note": None,
-        "summary": None,
-        "tags": [],
-        "content": {"type": "text", "text": "Some text without sourceUrl"},
-        "assets": [],
-    }
-    no_url_bookmark = Bookmark.model_validate(no_url_bookmark_data)
-    assert extract_url_from_bookmark(no_url_bookmark) is None
+    bookmark = Bookmark.model_validate(bookmark_data)
+    assert extract_url_from_bookmark(bookmark) == expected_url
 
 
 @pytest.mark.asyncio
@@ -675,6 +679,55 @@ async def test_get_bookmark_id_by_url_normalization(client: KarakeepClient):
         # Search for URL without trailing slash - should still find the bookmark
         result = await client.get_bookmark_id_by_url("https://example.com")  # No trailing slash
         assert result == "bookmark1"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "search_url,stored_url",
+    [
+        # trailing slash normalization (existing case, repeated for completeness)
+        ("https://example.com", "https://example.com/"),
+        # query string preserved
+        ("https://example.com/page?q=1", "https://example.com/page?q=1"),
+        # fragment preserved
+        ("https://example.com/page#top", "https://example.com/page#top"),
+        # path with trailing slash
+        ("https://example.com/path/", "https://example.com/path/"),
+    ],
+    ids=["trailing-slash", "query-string", "fragment", "path-trailing-slash"],
+)
+async def test_get_bookmark_id_by_url_normalization_shapes(
+    client: KarakeepClient, search_url, stored_url
+):
+    """Test that get_bookmark_id_by_url matches across normalization-equivalent URLs."""
+    search_response = {
+        "bookmarks": [
+            {
+                "id": "found_bookmark",
+                "createdAt": "2023-01-01T00:00:00Z",
+                "modifiedAt": None,
+                "title": "Test",
+                "archived": False,
+                "favourited": False,
+                "taggingStatus": None,
+                "summarizationStatus": None,
+                "note": None,
+                "summary": None,
+                "tags": [],
+                "content": {"type": "link", "url": stored_url},
+                "assets": [],
+            }
+        ],
+        "nextCursor": None,
+    }
+
+    with patch.object(client, "search_bookmarks") as mock_search:
+        from karakeep_client.models import PaginatedBookmarks
+
+        mock_search.return_value = PaginatedBookmarks.model_validate(search_response)
+        result = await client.get_bookmark_id_by_url(search_url)
+
+    assert result == "found_bookmark"
 
 
 @pytest.mark.asyncio
@@ -897,6 +950,62 @@ class TestURLValidation:
         assert result == expected_output
 
     @pytest.mark.parametrize(
+        "input_url,expected_output",
+        [
+            # default port stripped by HttpUrl normalization
+            ("https://example.com:443/path", "https://example.com/path"),
+            # non-default port preserved
+            ("https://example.com:9090/path", "https://example.com:9090/path"),
+            # percent-encoded path preserved as-is
+            ("https://example.com/path%20with%20spaces", "https://example.com/path%20with%20spaces"),
+            # unicode domain (IDN / punycode) preserved
+            ("https://xn--nxasmq6b.example.com/path", "https://xn--nxasmq6b.example.com/path"),
+            # mixed-case scheme and host normalized to lowercase
+            ("HTTPS://EXAMPLE.COM/path", "https://example.com/path"),
+            # deeply nested path with query and fragment preserved
+            ("https://example.com/a/b/c/d?x=1&y=2#section", "https://example.com/a/b/c/d?x=1&y=2#section"),
+            # userinfo preserved
+            ("https://user:pass@example.com/path", "https://user:pass@example.com/path"),
+        ],
+    )
+    def test_validate_url_normalization_boundaries(self, input_url, expected_output):
+        """Test validate_url on URL shapes that stress normalization layers.
+
+        This test locks in behavior — if a URL is rejected, change the
+        expectation to pytest.raises(ValueError) rather than deleting the case.
+        """
+        from karakeep_client.karakeep import validate_url
+
+        result = validate_url(input_url)
+        assert result == expected_output
+
+    @pytest.mark.parametrize(
+        "url,expected",
+        [
+            # Passes basic regex but has no valid TLD — rejected at regex layer
+            ("http://localhost/path", ValueError("URL does not match expected url regex")),
+            # Valid-looking but scheme-only after normalization — rejected at regex layer
+            ("http://.", ValueError("URL does not match expected url regex")),
+            # Very long URL: passes all layers, returned unchanged
+            ("https://example.com/" + "a" * 2048, "https://example.com/" + "a" * 2048),
+            # Empty port stripped by HttpUrl normalization
+            ("https://example.com:/path", "https://example.com/path"),
+            # Double slash in path preserved as-is
+            ("https://example.com//path", "https://example.com//path"),
+        ],
+    )
+    def test_validate_url_multi_layer_seams(self, url, expected):
+        """Test URLs that may pass one validation layer but fail another."""
+        from karakeep_client.karakeep import validate_url
+
+        if isinstance(expected, ValueError):
+            with pytest.raises(ValueError, match=str(expected)):
+                validate_url(url)
+        else:
+            result = validate_url(url)
+            assert result == expected
+
+    @pytest.mark.parametrize(
         "invalid_url,expected_error",
         [
             ("", "URL cannot be empty"),
@@ -945,6 +1054,45 @@ class TestValidateUrlProperties:
             first = validate_url(url)
         except ValueError:
             assume(False)  # discard — only test idempotency on inputs that actually pass
+        second = validate_url(first)
+        assert first == second
+
+    @given(
+        st.builds(
+            lambda scheme, host, tld, port, path, query, fragment: (
+                f"{scheme}://{host}.{tld}"
+                + (f":{port}" if port else "")
+                + (f"/{path}" if path else "")
+                + (f"?{query}" if query else "")
+                + (f"#{fragment}" if fragment else "")
+            ),
+            scheme=st.sampled_from(["http", "https"]),
+            host=st.from_regex(r"[a-z]{3,12}", fullmatch=True),
+            tld=st.sampled_from(["com", "org", "net", "io", "dev", "co.uk"]),
+            port=st.one_of(st.none(), st.integers(min_value=80, max_value=9999).map(str)),
+            path=st.one_of(
+                st.none(),
+                st.from_regex(r"[a-z0-9/]{1,30}", fullmatch=True),
+            ),
+            query=st.one_of(
+                st.none(),
+                st.from_regex(r"[a-z]+=[\w]{1,10}", fullmatch=True),
+            ),
+            fragment=st.one_of(
+                st.none(),
+                st.from_regex(r"[a-z]{1,10}", fullmatch=True),
+            ),
+        )
+    )
+    @settings(max_examples=300)
+    def test_idempotent_on_diverse_urls(self, url: str) -> None:
+        """Idempotency property over URLs with ports, paths, queries, and fragments."""
+        from karakeep_client.karakeep import validate_url
+
+        try:
+            first = validate_url(url)
+        except ValueError:
+            assume(False)
         second = validate_url(first)
         assert first == second
 
