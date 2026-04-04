@@ -2,9 +2,11 @@
 
 ## Context
 
-`karakeep-client` is an async Python package (`src/karakeep_client`) with public client APIs in `karakeep.py` and API/data contracts in `models.py`. The repository has user-facing usage guidance in `README.md` and a demo script in `notebooks/karakeep_client_demo.py`, but no reproducible documentation build pipeline and incomplete docstring coverage for generated API reference.
+`karakeep-client` is an async Python package (`src/karakeep_client`) with public client APIs in `karakeep.py` and API/data contracts in `models.py`.
+The repository has user-facing usage guidance in `README.md` and a demo script in `notebooks/karakeep_client_demo.py`, but no reproducible documentation build pipeline and incomplete docstring coverage for generated API reference.
 
-The change introduces documentation infrastructure and documentation-quality requirements without changing bookmark/asset/tag/search runtime behavior. Constraints: Python 3.12+, uv-managed dependencies, Google-style docstrings for public APIs, no unnecessary feature expansion.
+The change introduces documentation infrastructure and documentation-quality requirements without changing bookmark/asset/tag/search runtime behavior.
+Constraints: Python 3.12+, uv-managed dependencies, Google-style docstrings for public APIs, no unnecessary feature expansion.
 
 ## Decisions
 

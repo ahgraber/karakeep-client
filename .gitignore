@@ -17,6 +17,7 @@
 *.profraw
 profile_default/
 ipython_config.py
+CLAUDE.md
 
 # Trash
 .DS_Store

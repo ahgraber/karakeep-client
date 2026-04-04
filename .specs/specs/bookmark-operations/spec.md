@@ -5,7 +5,8 @@
 
 ## Purpose
 
-Define the client's bookmark CRUD operations, paginated listing, search, and URL-based lookup against the Karakeep API. All operations are asynchronous and return validated Pydantic models.
+Define the client's bookmark CRUD operations, paginated listing, search, and URL-based lookup against the Karakeep API.
+All operations are asynchronous and return validated Pydantic models.
 
 ## Requirements
 
@@ -59,7 +60,8 @@ The client SHALL provide a method to search bookmarks by a required query string
 
 ### Requirement: Look up bookmark ID by URL
 
-The client SHALL provide a method to find a bookmark's ID by its URL, performing URL normalization to match bookmarks that differ only by trailing slash or scheme normalization. Search results whose extracted URL is not a valid URL SHALL be skipped rather than aborting the lookup.
+The client SHALL provide a method to find a bookmark's ID by its URL, performing URL normalization to match bookmarks that differ only by trailing slash or scheme normalization.
+Search results whose extracted URL is not a valid URL SHALL be skipped rather than aborting the lookup.
 
 #### Scenario: URL match found
 
@@ -136,8 +138,7 @@ The client SHALL provide a method to delete a bookmark by its ID, returning `Non
 
 ### Requirement: Update a bookmark by ID
 
-The client SHALL provide a method to partially update a bookmark by its ID, returning a
-`BookmarkUpdateResponse` reflecting the metadata fields present in the PATCH response.
+The client SHALL provide a method to partially update a bookmark by its ID, returning a `BookmarkUpdateResponse` reflecting the metadata fields present in the PATCH response.
 Tags, content, and assets are not included in the PATCH response.
 
 #### Scenario: Successful update returns partial response model

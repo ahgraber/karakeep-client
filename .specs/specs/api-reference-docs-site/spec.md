@@ -5,7 +5,8 @@
 
 ## Purpose
 
-Provide a documentation build pipeline that generates a static site from repository docs content and Python API reference extracted from `src/karakeep_client`. Ensures that public client interfaces are discoverable through browsable, generated documentation.
+Provide a documentation build pipeline that generates a static site from repository docs content and Python API reference extracted from `src/karakeep_client`.
+Ensures that public client interfaces are discoverable through browsable, generated documentation.
 
 ## Requirements
 

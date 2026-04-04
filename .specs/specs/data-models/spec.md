@@ -5,7 +5,8 @@
 
 ## Purpose
 
-Define the Pydantic data models that represent Karakeep API payloads. All models support both camelCase (API wire format) and snake_case (Python convention) field access, with discriminated content types for bookmark payloads.
+Define the Pydantic data models that represent Karakeep API payloads.
+All models support both camelCase (API wire format) and snake_case (Python convention) field access, with discriminated content types for bookmark payloads.
 
 ## Requirements
 

@@ -2,7 +2,8 @@
 
 ## Intent
 
-The repository has no formal documentation build pipeline and inconsistent API docstring coverage, making onboarding and API discovery harder than necessary. Establishing MkDocs + Material + mkdocstrings aligns published documentation with the actual Python client surface and reduces integration friction.
+The repository has no formal documentation build pipeline and inconsistent API docstring coverage, making onboarding and API discovery harder than necessary.
+Establishing MkDocs + Material + mkdocstrings aligns published documentation with the actual Python client surface and reduces integration friction.
 
 ## Scope
 

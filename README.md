@@ -1,6 +1,6 @@
 # karakeep_client
 
-A small, focused Python client for a subset of the Karakeep API (https://docs.karakeep.app/).
+A small, focused Python client for a subset of the Karakeep API (<https://docs.karakeep.app/>).
 
 This package provides an async client to interact with Karakeep programmatically, including bookmarking, asset uploads, tagging, and simple search/pagination helpers.
 
@@ -67,11 +67,12 @@ uv sync
 The client expects two environment variables (or you can pass them to the KarakeepClient constructor):
 
 - KARAKEEP_API_KEY — your API key
-- KARAKEEP_BASE_URL — base URL of your Karakeep instance (for example: https://selfhosted.example.com)
+- KARAKEEP_BASE_URL — base URL of your Karakeep instance (for example: <https://selfhosted.example.com>)
 
 ## Usage (quick start)
 
-All client operations are asynchronous. Typical usage with Python 3.8+:
+All client operations are asynchronous.
+Typical usage with Python 3.11+:
 
 ```python
 import asyncio
@@ -96,7 +97,8 @@ asyncio.run(main())
 
 ## Demo
 
-A demonstration script is included at `notebooks/karakeep_client_demo.py`. It shows example flows for:
+A demonstration script is included at `notebooks/karakeep_client_demo.py`.
+It shows example flows for:
 
 - Listing bookmarks
 - Searching
@@ -131,17 +133,21 @@ For self-hosted Docat packaging and upload handoff, see `docs/docat-handoff.md`.
 
 ## Notes
 
-- Response validation: by default, responses are validated using Pydantic models defined in karakeep_client.karakeep. You can disable validation by passing `disable_response_validation=True` to the KarakeepClient constructor or to individual methods.
-- Asset retrieval returns raw bytes (Accept: */*). Bookmark content types include link, text, asset, and unknown; helper functions attempt to extract canonical URLs.
+- Response validation: by default, responses are validated using Pydantic models defined in karakeep_client.karakeep.
+  You can disable validation by passing `disable_response_validation=True` to the KarakeepClient constructor or to individual methods.
+- Asset retrieval returns raw bytes (`Accept: */*`).
+  Bookmark content types include link, text, asset, and unknown; helper functions attempt to extract canonical URLs.
 - The client is asynchronous and built on httpx; ensure you run it from an async context.
 
 ## Contributing
 
-Contributions and fixes are welcome. Please open issues or pull requests with clear descriptions and tests where appropriate.
+Contributions and fixes are welcome.
+Please open issues or pull requests with clear descriptions and tests where appropriate.
 
 ### Releasing
 
-This project uses [uv-ship](https://github.com/floRaths/uv-ship) to manage releases. Install it as a uv tool:
+This project uses [uv-ship](https://github.com/floRaths/uv-ship) to manage releases.
+Install it as a uv tool:
 
 ```bash
 uv tool install uv-ship
@@ -157,4 +163,5 @@ uv-ship --dry-run next <major | minor | patch>
 uv-ship next <major | minor | patch>
 ```
 
-This bumps the version in `pyproject.toml`, updates `CHANGELOG`, commits, tags, and pushes. See `[tool.uv-ship]` in `pyproject.toml` for configuration.
+This bumps the version in `pyproject.toml`, updates `CHANGELOG`, commits, tags, and pushes.
+See `[tool.uv-ship]` in `pyproject.toml` for configuration.

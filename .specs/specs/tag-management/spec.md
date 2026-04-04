@@ -5,7 +5,8 @@
 
 ## Purpose
 
-Define how tags are attached to and detached from bookmarks via the Karakeep API. Tags can be referenced by ID (existing tags) or by name (creates tag if it does not exist).
+Define how tags are attached to and detached from bookmarks via the Karakeep API.
+Tags can be referenced by ID (existing tags) or by name (creates tag if it does not exist).
 
 ## Requirements
 

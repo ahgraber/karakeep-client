@@ -5,7 +5,8 @@
 
 ## Purpose
 
-Define how assets (files, images, PDFs) are uploaded, retrieved, and associated with bookmarks through the Karakeep API. Covers standalone asset operations and bookmark-asset association management.
+Define how assets (files, images, PDFs) are uploaded, retrieved, and associated with bookmarks through the Karakeep API.
+Covers standalone asset operations and bookmark-asset association management.
 
 ## Requirements
 
