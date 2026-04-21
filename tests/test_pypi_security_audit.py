@@ -3,13 +3,59 @@ Security audit tests using pip-audit to detect known vulnerabilities.
 
 This test runs pip-audit against the installed packages and fails if any
 vulnerabilities are detected, ensuring continuous security monitoring.
+
+Common vulnerabilities you may want to ignore (add "--ignore-vuln", "<CVE>" to the pip-audit args):
+
+- CVE-2025-53000: nbconvert Windows-only vulnerability (no risk on Linux/macOS)
+
+Ref: https://gist.github.com/mikeckennedy/de70ce13231b407a8dccea758f83a5cd
 """
 
+import json
 from pathlib import Path
 import subprocess
 import sys
 
 import pytest
+
+
+def _format_fix_versions(fix_versions: list[str]) -> str:
+    if not fix_versions:
+        return "no fix published"
+    return ", ".join(fix_versions)
+
+
+def _summarize_pip_audit_json(raw_output: str) -> str:
+    payload = json.loads(raw_output)
+    dependencies = payload.get("dependencies", [])
+
+    vulnerable_dependencies = []
+    skipped_dependencies = []
+    for dependency in dependencies:
+        vulns = dependency.get("vulns", [])
+        if vulns:
+            vulnerable_dependencies.append(dependency)
+        elif dependency.get("skip_reason"):
+            skipped_dependencies.append(dependency)
+
+    lines: list[str] = []
+    lines.append(f"Vulnerable packages: {len(vulnerable_dependencies)}")
+    for dependency in vulnerable_dependencies:
+        name = dependency["name"]
+        version = dependency.get("version", "unknown")
+        lines.append(f"- {name} {version}")
+        for vulnerability in dependency.get("vulns", []):
+            vuln_id = vulnerability.get("id", "unknown-id")
+            fix_versions = _format_fix_versions(vulnerability.get("fix_versions", []))
+            lines.append(f"  - {vuln_id}; fix: {fix_versions}")
+
+    if skipped_dependencies:
+        lines.append("")
+        lines.append(f"Skipped dependencies: {len(skipped_dependencies)}")
+        for dependency in skipped_dependencies:
+            lines.append(f"- {dependency['name']}: {dependency['skip_reason']}")
+
+    return "\n".join(lines)
 
 
 def test_pip_audit_no_vulnerabilities():
@@ -18,11 +64,8 @@ def test_pip_audit_no_vulnerabilities():
 
     This test will fail if any vulnerabilities are detected in the installed packages.
 
-    Note: CVE-2025-53000 (nbconvert Windows vulnerability) is ignored as it only affects
-    Windows platforms and is a known acceptable risk for this project.
-
     To run this test specifically:
-        pytest talk_python_training/tests/test_security_audit.py -v
+        pytest tests/test_pypi_security_audit.py -v
     """
     # Get the project root directory
     project_root = Path(__file__).parent.parent.parent
@@ -36,8 +79,6 @@ def test_pip_audit_no_vulnerabilities():
                 "pip_audit",
                 "--format=json",
                 "--progress-spinner=off",
-                "--ignore-vuln",
-                "CVE-2025-53000",
                 "--skip-editable",
             ],
             cwd=project_root,
@@ -57,11 +98,15 @@ def test_pip_audit_no_vulnerabilities():
 
         # Check if it's an actual vulnerability vs an error
         if "vulnerabilities found" in error_output.lower() or '"dependencies"' in result.stdout:
+            try:
+                summarized_output = _summarize_pip_audit_json(result.stdout)
+            except json.JSONDecodeError:
+                summarized_output = result.stdout
             pytest.fail(
                 f"pip-audit detected security vulnerabilities!\n\n"
-                f"Output:\n{result.stdout}\n\n"
+                f"Output:\n{summarized_output}\n\n"
                 f"Please review and update vulnerable packages.\n"
-                f"Run manually with: ./venv/bin/python -m pip_audit --ignore-vuln CVE-2025-53000 --skip-editable"
+                f"Run manually with: python -m pip_audit --skip-editable"
             )
         else:
             # Some other error occurred
@@ -70,7 +115,8 @@ def test_pip_audit_no_vulnerabilities():
             )
 
     # Success - no vulnerabilities found
-    assert result.returncode == 0, "pip-audit should return 0 when no vulnerabilities are found"
+    if result.returncode != 0:
+        pytest.fail("pip-audit should return 0 when no vulnerabilities are found")
 
 
 def test_pip_audit_runs_successfully():
@@ -86,8 +132,11 @@ def test_pip_audit_runs_successfully():
             text=True,
             timeout=10,
         )
-        assert result.returncode == 0, f"pip-audit --version failed: {result.stderr}"
-        assert "pip-audit" in result.stdout.lower(), "pip-audit version output unexpected"
+        if result.returncode != 0:
+            pytest.fail(f"pip-audit --version failed: {result.stderr}")
+
+        if "pip-audit" not in result.stdout.lower():
+            pytest.fail("pip-audit version output unexpected")
     except FileNotFoundError:
         pytest.fail("pip-audit not installed")
     except subprocess.TimeoutExpired:
