@@ -1,5 +1,15 @@
 # Changelog
 
+## `v0.5.0` — [2026-09-18]
+
+- refactor(client)!: use httpx2 instead of httpx [606c26e]
+- test(security): add pip and uv security audit to test battery [ccc4b7a]
+- fix(biome): mv biome.jsonc to .biome.jsonc for config pattern coherence [9a64eea]
+- feat(tests): add security audit tests using uv audit for vulnerability detection [ee6172b]
+- feat(pre-commit): add rule to forbid Co-authored-by attribution trailer [e3f0f13]
+- fix(tests): update pip-audit test to emit warnings for vulnerabilities [1244745]
+- build: update uv_build version constraint to <0.12 [aad3218]
+
 ## `v0.4.1` — [2026-05-11]
 
 - feat(client): align with Karakeep v0.32 — add `source` to `create_bookmark` and `attached_by` to tag attach/detach; correct `includeContent` docstrings for the v0.32 server-default flip [561974e]
