@@ -6,7 +6,7 @@ This package provides an async client to interact with Karakeep programmatically
 
 ## Features
 
-- Async KarakeepClient built on httpx
+- Async KarakeepClient built on httpx2
 - Get, search, create, update and delete bookmarks
 - Upload and retrieve assets
 - Attach/detach assets and tags from bookmarks
@@ -137,7 +137,7 @@ For self-hosted Docat packaging and upload handoff, see `docs/docat-handoff.md`.
   You can disable validation by passing `disable_response_validation=True` to the KarakeepClient constructor or to individual methods.
 - Asset retrieval returns raw bytes (`Accept: */*`).
   Bookmark content types include link, text, asset, and unknown; helper functions attempt to extract canonical URLs.
-- The client is asynchronous and built on httpx; ensure you run it from an async context.
+- The client is asynchronous and built on httpx2; ensure you run it from an async context.
 
 ## Contributing
 
