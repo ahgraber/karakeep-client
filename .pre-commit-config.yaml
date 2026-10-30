@@ -148,7 +148,7 @@ repos:
           # - mdformat-shfmt # disable until can pass args (ref: https://github.com/hukkin/mdformat-shfmt/issues/7)
   # renovate: datasource=github-tags depName=rvben/rumdl-pre-commit
   - repo: https://github.com/rvben/rumdl-pre-commit
-    rev: v0.1.62
+    rev: v0.3.2
     hooks:
       # - id: rumdl      # Lint only (fails on issues)
       #   stages: [pre-commit]
